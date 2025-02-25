@@ -33,4 +33,7 @@ public class GUIBuilder extends JFrame{
     public static void main(String[] args) {
         SwingUtilities.invokeLater(GUIBuilder::new);
     }
+    public void showPopupMessage(String message) {
+        JOptionPane.showMessageDialog(this, message, "Message", JOptionPane.INFORMATION_MESSAGE);
+    }
 }
