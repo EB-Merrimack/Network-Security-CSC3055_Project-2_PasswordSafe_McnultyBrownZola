@@ -14,6 +14,18 @@ import java.util.Map;
 public class Main {
     private static final String vaultfile = "src/json/vault.json";
 
+    /**
+     * Main entry point of the application.
+     *
+     * This method creates a new GUI object and sets it to be visible. It also
+     * checks to see if a vault file exists, and if not, creates it. If the file
+     * does exist, it reads the contents and stores them in the GUI object. If
+     * there is an error reading or writing the file, a message is displayed to
+     * the user.
+     *
+     * When the application is closed, a shutdown hook is used to save the
+     * vault contents to the file.
+     */
     public static void main(String[] args) {
         GUIBuilder gui = new GUIBuilder();
         gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -53,6 +65,14 @@ public class Main {
         }));
     }
 
+    /**
+     * Writes the given Vault to the given File in JSON format, ensuring
+     * the directory and file exist before writing.
+     *
+     * @param vault the Vault to write
+     * @param file the File to write to
+     * @throws IOException if there is an error writing the file
+     */
     private static void writeFormattedObject(Vault vault, File file) throws IOException {
         // Ensure the directory exists
         File parentDir = file.getParentFile();
@@ -76,6 +96,15 @@ public class Main {
         Files.write(Paths.get(file.toURI()), json.toString().getBytes());
     }
     
+    /**
+     * Reads a Vault from the given File in JSON format, ensuring the file exists
+     * and contains a valid JSON structure.
+     *
+     * @param file the File to read from
+     * @return the Vault read from the file
+     * @throws IOException if there is an error reading the file or if the
+     *         file's contents are invalid
+     */
     private static Vault readFormattedObject(File file) throws IOException {
         String content = new String(Files.readAllBytes(Paths.get(file.toURI())));
     
