@@ -16,7 +16,7 @@ public class MainPanel extends JPanel{
         
         addCredentialButton.addActionListener(e -> parent.showPanel("AddCredentialPanel", new AddCredentialPanel()));
         lookupCredentialButton.addActionListener(e -> parent.showPanel("LookupCredentialPanel", new LookupCredentialPanel()));
-        //generatePasswordButton.addActionListener(e -> parent.showPanel("GenerateRandomPasswordPanel", new GenerateRandomPasswordPanel()));
+        generatePasswordButton.addActionListener(e -> parent.showPanel("GenerateRandomPasswordPanel", new GenerateRandomPasswordPanel()));
         //addPrivateKeyButton.addActionListener(e -> parent.showPanel("AddServiceAndPrivateKeyPanel", new AddServiceAndPrivateKeyPanel()));
         //lookupPrivateKeyButton.addActionListener(e -> parent.showPanel("LookupPrivateKeyPanel", new LookupPrivateKeyPanel()));
         //generateKeyPairButton.addActionListener(e -> parent.showPanel("AddServiceAndKeyGenPanel", new AddServiceAndKeyGenPanel()));
