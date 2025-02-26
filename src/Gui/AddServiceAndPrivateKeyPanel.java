@@ -1,5 +1,9 @@
 package Gui;
 
-public class AddServiceAndPrivateKeyPanel {
+import javax.swing.*;
+import java.awt.*;
+
+
+public class AddServiceAndPrivateKeyPanel extends JPanel{
     
 }
