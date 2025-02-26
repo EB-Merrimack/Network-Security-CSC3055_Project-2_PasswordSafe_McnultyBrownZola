@@ -1,4 +1,4 @@
-package json;
+package JSON;
 
 public class JSONFormatter {
     

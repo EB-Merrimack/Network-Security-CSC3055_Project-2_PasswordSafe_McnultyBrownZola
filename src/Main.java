@@ -9,7 +9,7 @@ import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.parser.JSONParser;
 import merrimackutil.json.parser.ast.SyntaxTree;
 import java.util.Map;
-import json.JSONFormatter; // Assuming the formatter class is in the json package/folder
+import JSON.JSONFormatter; // Assuming the formatter class is in the json package/folder
 
 public class Main {
     private static final String vaultfile = "src/json/vault.json";
