@@ -3,6 +3,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
 import Gui.GUIBuilder;
 import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.parser.JSONParser;
@@ -73,7 +75,7 @@ public class Main {
      * @param file the File to write to
      * @throws IOException if there is an error writing the file
      */
-    private static void writeFormattedObject(Vault vault, File file) throws IOException {
+    static void writeFormattedObject(Vault vault, File file) throws IOException {
         // Ensure the directory exists
         File parentDir = file.getParentFile();
         if (!parentDir.exists()) {
@@ -106,23 +108,41 @@ public class Main {
      *         file's contents are invalid
      */
     private static Vault readFormattedObject(File file) throws IOException {
-        String content = new String(Files.readAllBytes(Paths.get(file.toURI())));
+        String content = new String(Files.readAllBytes(Paths.get(file.toURI()))).trim();
     
-        // Parse the JSON file
+        // If file is empty or contains just `{}`, go to Vault Initialization
+        if (content.isEmpty() || content.equals("{}")) {
+            return VaultInitialization.initializeVault(file);
+        }
+    
+        // Parse JSON data
         JSONParser parser = new JSONParser(content);
-        SyntaxTree syntaxTree = parser.parse(); 
+        SyntaxTree syntaxTree = parser.parse();
     
-        // Evaluate the syntax tree
+        if (syntaxTree == null) {
+            throw new IOException("JSON parsing failed: Syntax tree is null.");
+        }
+    
         Object evaluatedData = syntaxTree.evaluate();
-    
         if (!(evaluatedData instanceof Map)) {
             throw new IOException("Invalid JSON structure in vault file");
         }
     
         JSONObject json = new JSONObject((Map<String, Object>) evaluatedData);
-    
         Vault vault = new Vault();
-        vault.setKeyBlock(new KeyBlock(json)); // Ensure KeyBlock constructor supports JSONObject
+        vault.setKeyBlock(new KeyBlock(json));
+    
         return vault;
     }
+    
+private static int promptUserForVaultCreation() {
+    String message = "The vault file is empty. Would you like to create a new vault?";
+    String title = "Vault Creation";
+    int choice = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
+    return choice; // Returns 0 for Yes, 1 for No
 }
+
+
+
+
+    }
