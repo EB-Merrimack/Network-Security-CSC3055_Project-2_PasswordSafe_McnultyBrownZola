@@ -11,6 +11,7 @@ public class KeyBlock extends HashMap<String, Object> {
         super(jsonToMap(json)); // Convert JSONObject manually
     }
 
+    // Returns the data as a JSONObject
     public JSONObject getData() {
         return new JSONObject(this);
     }
@@ -19,7 +20,11 @@ public class KeyBlock extends HashMap<String, Object> {
     private static Map<String, Object> jsonToMap(JSONObject json) {
         Map<String, Object> map = new HashMap<>();
         for (String key : json.keySet()) {
-            map.put(key, json.get(key)); // Assuming json.get() returns valid Java types
+            try {
+                map.put(key, json.get(key)); // Safe conversion of JSON to Map
+            } catch (Exception e) {
+                System.err.println("Error processing key: " + key + " - " + e.getMessage());
+            }
         }
         return map;
     }

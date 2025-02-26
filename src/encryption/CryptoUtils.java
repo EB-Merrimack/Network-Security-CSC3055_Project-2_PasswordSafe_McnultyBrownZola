@@ -1,34 +1,59 @@
 package encryption;
 
-
-import java.security.NoSuchAlgorithmException;
+import org.bouncycastle.crypto.generators.SCrypt;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.security.SecureRandom;
 import java.util.Base64;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
 
 public class CryptoUtils {
-    
-    public static String generateSalt() {
-        byte[] salt = new byte[16];
-        new SecureRandom().nextBytes(salt);
-        return Base64.getEncoder().encodeToString(salt);
+    private static final int SCRYPT_COST = 2048;
+    private static final int SCRYPT_BLOCK_SIZE = 8;
+    private static final int SCRYPT_PARALLELIZATION = 1;
+    private static final int AES_KEY_SIZE = 32; // 256-bit key
+    private static final int IV_SIZE = 16;
+    private static final SecureRandom secureRandom = new SecureRandom();
+
+    // Generate a random 16-byte salt
+    public static byte[] generateSalt() {
+        byte[] salt = new byte[IV_SIZE];
+        secureRandom.nextBytes(salt);
+        return salt;
     }
 
-    public static String hashPassword(String password, String salt) {
-        try {
-            byte[] saltBytes = Base64.getDecoder().decode(salt);
-            PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), saltBytes, 65536, 128);
-            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-            return Base64.getEncoder().encodeToString(factory.generateSecret(spec).getEncoded());
-        } catch (NoSuchAlgorithmException | java.security.spec.InvalidKeySpecException e) {
-            throw new RuntimeException("Error hashing password", e);
-        }
+    // Generate a random IV
+    public static byte[] generateIV() {
+        byte[] iv = new byte[IV_SIZE];
+        secureRandom.nextBytes(iv);
+        return iv;
     }
 
-    public static String generateIV() {
-        byte[] iv = new byte[16];
-        new SecureRandom().nextBytes(iv);
-        return Base64.getEncoder().encodeToString(iv);
+    // Derive the root key from the password using scrypt
+    public static byte[] deriveRootKey(String password, byte[] salt) {
+        return SCrypt.generate(password.getBytes(), salt, SCRYPT_COST, SCRYPT_BLOCK_SIZE, SCRYPT_PARALLELIZATION, AES_KEY_SIZE);
+    }
+
+    // Generate a new random AES key (vault key)
+    public static byte[] generateRandomKey() {
+        byte[] key = new byte[AES_KEY_SIZE];
+        secureRandom.nextBytes(key);
+        return key;
+    }
+
+    // Encrypt data using AES-GCM
+     // Encrypt data using AES-GCM
+    public static byte[] encryptAES(byte[] data, byte[] key, byte[] iv) throws Exception {
+        SecretKey secretKey = new SecretKeySpec(key, "AES");
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+
+        // Use GCMParameterSpec with a 128-bit authentication tag length
+        GCMParameterSpec gcmSpec = new GCMParameterSpec(128, iv); // 128-bit authentication tag
+
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, gcmSpec);
+        return cipher.doFinal(data);
     }
 }
