@@ -17,7 +17,7 @@ public class GUIBuilder extends JFrame{
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
-        mainPanel.add(new LoginPanel(), "Login");
+        mainPanel.add(new LoginPanel(this), "Login");
         mainPanel.add(new MainPanel(), "Main");
         
         add(mainPanel);
