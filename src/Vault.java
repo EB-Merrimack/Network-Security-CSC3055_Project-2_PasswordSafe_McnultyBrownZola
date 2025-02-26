@@ -62,13 +62,7 @@ public class Vault {
             this.key = (String) json.get("key");
         }
 
-        @Override
-        public String toString() {
-            return "VaultKey{" +
-                   "key='" + key + '\'' +
-                   ", iv='" + iv + '\'' +
-                   '}';
-        }
+      
 
         public String getIv() {
             return iv;

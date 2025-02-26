@@ -114,27 +114,33 @@ public class KeyBlockcreation {
   // In the KeyBlockcreation class
 
 // Modify the toString() method to generate valid JSON
+
 @Override
 public String toString() {
-    // Convert the map to JSON string format
     StringBuilder json = new StringBuilder();
     json.append("{");
 
+    // Iterate through each entry in the data map
     for (Map.Entry<String, Object> entry : data.entrySet()) {
-        // Add key with double quotes
+        // Add key with double quotes around the key name
         json.append("\"").append(entry.getKey()).append("\": ");
 
-        // Handle value types (String should be quoted)
+        // Check for the type of value and handle string values with quotes
         if (entry.getValue() instanceof String) {
             json.append("\"").append(entry.getValue()).append("\"");
         } else if (entry.getValue() instanceof JSONObject) {
+            // If the value is a JSONObject, call its toString() method
             json.append(((JSONObject) entry.getValue()).toString());
+        } else if (entry.getValue() instanceof Map) {
+            // Handle nested Map objects (if any)
+            json.append(new JSONObject((Map<String, Object>) entry.getValue()).toString());
         } else {
+            // Otherwise, just add the value directly
             json.append(entry.getValue());
         }
 
-        // Add a comma if this is not the last entry
-        if (data.size() > 1) {
+        // Add a comma after each entry except for the last one
+        if (entry != data.entrySet().toArray()[data.size() - 1]) {
             json.append(", ");
         }
     }
@@ -142,5 +148,6 @@ public String toString() {
     json.append("}");
     return json.toString();
 }
+
 
 }
