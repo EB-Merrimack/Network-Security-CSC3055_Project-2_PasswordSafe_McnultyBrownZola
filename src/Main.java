@@ -4,38 +4,25 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-
 import Gui.GUIBuilder;
 import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.parser.JSONParser;
 import merrimackutil.json.parser.ast.SyntaxTree;
-
-import java.util.Base64;
 import java.util.Map;
+import json.JSONFormatter; // Assuming the formatter class is in the json package/folder
 
 public class Main {
     private static final String vaultfile = "src/json/vault.json";
+    public static KeyBlockcreation keyBlock;
 
-    /**
-     * Main entry point of the application.
-     *
-     * This method creates a new GUI object and sets it to be visible. It also
-     * checks to see if a vault file exists, and if not, creates it. If the file
-     * does exist, it reads the contents and stores them in the GUI object. If
-     * there is an error reading or writing the file, a message is displayed to
-     * the user.
-     *
-     * When the application is closed, a shutdown hook is used to save the
-     * vault contents to the file.
-     */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         GUIBuilder gui = new GUIBuilder();
         gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         gui.setSize(800, 600);
         gui.setVisible(true);
 
         File vaultFile = new File(vaultfile);
-        final Vault[] vault = new Vault[1]; // Use a single-element array to hold the Vault object
+        final Vault[] vault = new Vault[1]; // Use an array to hold the Vault object reference
 
         if (!vaultFile.exists()) {
             try {
@@ -46,16 +33,18 @@ public class Main {
                 gui.showPopupMessage("Error creating vault: " + e.getMessage());
                 e.printStackTrace();
             }
-        } else {
-            try {
-                vault[0] = readFormattedObject(vaultFile);
-                gui.showPopupMessage("Vault loaded from " + vaultfile);
-            } catch (IOException e) {
-                gui.showPopupMessage("Error loading vault: " + e.getMessage());
-                e.printStackTrace();
-            }
         }
 
+        // Try loading the vault (whether newly created or pre-existing)
+        try {
+            vault[0] = readFormattedObject(vaultFile);
+            gui.showPopupMessage("Vault loaded from " + vaultfile);
+        } catch (IOException e) {
+            gui.showPopupMessage("Error loading vault: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // Ensure vault data is saved when exiting
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 writeFormattedObject(vault[0], vaultFile);
@@ -67,82 +56,70 @@ public class Main {
         }));
     }
 
-    /**
-     * Writes the given Vault to the given File in JSON format, ensuring
-     * the directory and file exist before writing.
-     *
-     * @param vault the Vault to write
-     * @param file the File to write to
-     * @throws IOException if there is an error writing the file
-     */
     static void writeFormattedObject(Vault vault, File file) throws IOException {
-        // Ensure the directory exists
         File parentDir = file.getParentFile();
         if (!parentDir.exists()) {
-            boolean created = parentDir.mkdirs(); // Creates the directory if it doesn't exist
+            boolean created = parentDir.mkdirs();
             if (!created) {
                 throw new IOException("Failed to create directory: " + parentDir.getAbsolutePath());
             }
         }
-    
-        // Create the file if it doesn't exist
+
         if (!file.exists()) {
-            boolean created = file.createNewFile(); // Creates the file if it doesn't exist
+            boolean created = file.createNewFile();
             if (!created) {
                 throw new IOException("Failed to create file: " + file.getAbsolutePath());
             }
         }
-    
-        // Get JSON representation and write to file
+
+        // Retrieve data from KeyBlock
         JSONObject json = vault.getKeyBlock().getData();
-        Files.write(Paths.get(file.toURI()), json.toString().getBytes());
+
+        // Use the JSONFormatter to format the JSON string
+        String formattedJson = JSONFormatter.formatJson(json.toString());
+
+        // Write the formatted JSON to the file
+        Files.write(Paths.get(file.toURI()), formattedJson.getBytes());
     }
-    
-    /**
-     * Reads a Vault from the given File in JSON format, ensuring the file exists
-     * and contains a valid JSON structure.
-     *
-     * @param file the File to read from
-     * @return the Vault read from the file
-     * @throws IOException if there is an error reading the file or if the
-     *         file's contents are invalid
-     */
-    private static Vault readFormattedObject(File file) throws IOException {
+
+    private static Vault readFormattedObject(File file) throws Exception {
         String content = new String(Files.readAllBytes(Paths.get(file.toURI()))).trim();
-    
-        // If file is empty or contains just `{}`, go to Vault Initialization
-        if (content.isEmpty() || content.equals("{}")) {
+
+        if (content.trim().isEmpty() || content.trim().equals("{}") || isEmptyJsonObject(content)) {
             return VaultInitialization.initializeVault(file);
         }
-    
-        // Parse JSON data
+
+        // Parse the JSON file content
         JSONParser parser = new JSONParser(content);
         SyntaxTree syntaxTree = parser.parse();
-    
+
         if (syntaxTree == null) {
             throw new IOException("JSON parsing failed: Syntax tree is null.");
         }
-    
+
         Object evaluatedData = syntaxTree.evaluate();
         if (!(evaluatedData instanceof Map)) {
             throw new IOException("Invalid JSON structure in vault file");
         }
-    
+
         JSONObject json = new JSONObject((Map<String, Object>) evaluatedData);
         Vault vault = new Vault();
-        vault.setKeyBlock(new KeyBlock(json));
-    
+
+        // Set the KeyBlock correctly with the parsed JSON data
+        vault.setKeyBlock(new KeyBlockcreation(json));  // Correct way to set KeyBlock
+
         return vault;
     }
-    
-private static int promptUserForVaultCreation() {
-    String message = "The vault file is empty. Would you like to create a new vault?";
-    String title = "Vault Creation";
-    int choice = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
-    return choice; // Returns 0 for Yes, 1 for No
-}
 
-
-
-
+    // Helper method to check if a JSON object contains only whitespace or empty data between curly braces
+    private static boolean isEmptyJsonObject(String content) {
+        // Trim the content and remove curly braces
+        String trimmedContent = content.trim();
+        if (trimmedContent.startsWith("{") && trimmedContent.endsWith("}")) {
+            String innerContent = trimmedContent.substring(1, trimmedContent.length() - 1).trim();
+            // If the content between braces is empty or contains only whitespace, it's considered empty
+            return innerContent.isEmpty();
+        }
+        return false;
     }
+}

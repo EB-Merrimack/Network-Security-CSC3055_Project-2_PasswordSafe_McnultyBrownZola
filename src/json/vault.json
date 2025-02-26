@@ -1,1 +1,7 @@
-{salt=Nid0K3eGIUBky9T82M0arw==, vaultkey=Vault$VaultKey@1ad282e0}
+{
+    salt=ig/sFXRNSqCpQu47itVuqQ==,
+     vaultkey={
+        iv=6LdMgdjs/20/+aug57rY0w==,
+         key=BXhqjez468/oMHGA9VYYKCChkHhM2gq6piDIrioHyDrMvuvFxd6BwRe4U6I/Z9J0
+    }
+}
