@@ -3,7 +3,7 @@ package Gui;
 import javax.swing.*;
 
 public class MainPanel extends JPanel{
-    public MainPanel() {
+    public MainPanel(GUIBuilder parent) {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         
         JLabel welcomeLabel = new JLabel("Welcome to the Secrets Vault");
@@ -14,13 +14,14 @@ public class MainPanel extends JPanel{
         JButton lookupPrivateKeyButton = new JButton("Lookup Private Key");
         JButton generateKeyPairButton = new JButton("Generate Key Pair");
         
-        addCredentialButton.addActionListener(e -> new AddCredentialPanel());
-        lookupCredentialButton.addActionListener(e -> new LookupCredentialPanel());
-        generatePasswordButton.addActionListener(e -> new GenerateRandomPasswordPanel());
-        addPrivateKeyButton.addActionListener(e -> new AddServiceAndPrivateKeyPanel());
-        lookupPrivateKeyButton.addActionListener(e -> new LookupPrivateKeyPanel());
-        generateKeyPairButton.addActionListener(e -> new AddServiceAndKeyGenPanel());
-        
+        addCredentialButton.addActionListener(e -> parent.showPanel("AddCredentialPanel", new AddCredentialPanel()));
+        lookupCredentialButton.addActionListener(e -> parent.showPanel("LookupCredentialPanel", new LookupCredentialPanel()));
+        //generatePasswordButton.addActionListener(e -> parent.showPanel("GenerateRandomPasswordPanel", new GenerateRandomPasswordPanel()));
+        //addPrivateKeyButton.addActionListener(e -> parent.showPanel("AddServiceAndPrivateKeyPanel", new AddServiceAndPrivateKeyPanel()));
+        //lookupPrivateKeyButton.addActionListener(e -> parent.showPanel("LookupPrivateKeyPanel", new LookupPrivateKeyPanel()));
+        //generateKeyPairButton.addActionListener(e -> parent.showPanel("AddServiceAndKeyGenPanel", new AddServiceAndKeyGenPanel()));
+
+
         add(welcomeLabel);
         add(addCredentialButton);
         add(lookupCredentialButton);

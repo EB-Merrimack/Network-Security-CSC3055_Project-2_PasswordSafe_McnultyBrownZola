@@ -13,7 +13,7 @@ public class LoginPanel extends JPanel{
         JPasswordField passwordField = new JPasswordField(15);
         JButton loginButton = new JButton("Unlock Vault");
         
-        loginButton.addActionListener(e -> parent.showPanel("Main"));
+        loginButton.addActionListener(e -> parent.showPanel("Main", new MainPanel(parent)));
 
         
         gbc.gridx = 0;

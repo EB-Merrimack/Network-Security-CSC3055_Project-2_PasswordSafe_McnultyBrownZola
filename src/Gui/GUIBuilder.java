@@ -18,7 +18,7 @@ public class GUIBuilder extends JFrame{
         mainPanel = new JPanel(cardLayout);
 
         mainPanel.add(new LoginPanel(this), "Login");
-        mainPanel.add(new MainPanel(), "Main");
+        mainPanel.add(new MainPanel(this), "Main");
         
         add(mainPanel);
     
@@ -26,7 +26,8 @@ public class GUIBuilder extends JFrame{
         cardLayout.show(mainPanel, "Login");
     }
     
-    public void showPanel(String panelName) {
+    public void showPanel(String panelName, JPanel panel) {
+        mainPanel.add(panel, panelName);
         cardLayout.show(mainPanel, panelName);
     }
     
