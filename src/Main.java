@@ -4,16 +4,16 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-
 import Gui.GUIBuilder;
 import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.parser.JSONParser;
 import merrimackutil.json.parser.ast.SyntaxTree;
-
 import java.util.Map;
+import json.JSONFormatter; // Assuming the formatter class is in the json package/folder
 
 public class Main {
     private static final String vaultfile = "src/json/vault.json";
+    public static KeyBlockcreation keyBlock;
 
     public static void main(String[] args) throws Exception {
         GUIBuilder gui = new GUIBuilder();
@@ -22,7 +22,7 @@ public class Main {
         gui.setVisible(true);
 
         File vaultFile = new File(vaultfile);
-        final Vault[] vault = new Vault[1]; // Use a single-element array to hold the Vault object
+        final Vault[] vault = new Vault[1]; // Use an array to hold the Vault object reference
 
         if (!vaultFile.exists()) {
             try {
@@ -33,16 +33,18 @@ public class Main {
                 gui.showPopupMessage("Error creating vault: " + e.getMessage());
                 e.printStackTrace();
             }
-        } else {
-            try {
-                vault[0] = readFormattedObject(vaultFile);
-                gui.showPopupMessage("Vault loaded from " + vaultfile);
-            } catch (IOException e) {
-                gui.showPopupMessage("Error loading vault: " + e.getMessage());
-                e.printStackTrace();
-            }
         }
 
+        // Try loading the vault (whether newly created or pre-existing)
+        try {
+            vault[0] = readFormattedObject(vaultFile);
+            gui.showPopupMessage("Vault loaded from " + vaultfile);
+        } catch (IOException e) {
+            gui.showPopupMessage("Error loading vault: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // Ensure vault data is saved when exiting
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 writeFormattedObject(vault[0], vaultFile);
@@ -70,17 +72,24 @@ public class Main {
             }
         }
 
-        JSONObject json = vault.getKeyBlock().getData();  // Retrieve data from KeyBlock
-        Files.write(Paths.get(file.toURI()), json.toString().getBytes());
+        // Retrieve data from KeyBlock
+        JSONObject json = vault.getKeyBlock().getData();
+
+        // Use the JSONFormatter to format the JSON string
+        String formattedJson = JSONFormatter.formatJson(json.toString());
+
+        // Write the formatted JSON to the file
+        Files.write(Paths.get(file.toURI()), formattedJson.getBytes());
     }
 
     private static Vault readFormattedObject(File file) throws Exception {
         String content = new String(Files.readAllBytes(Paths.get(file.toURI()))).trim();
 
-        if (content.isEmpty() || content.equals("{}")) {
+        if (content.trim().isEmpty() || content.trim().equals("{}") || isEmptyJsonObject(content)) {
             return VaultInitialization.initializeVault(file);
         }
 
+        // Parse the JSON file content
         JSONParser parser = new JSONParser(content);
         SyntaxTree syntaxTree = parser.parse();
 
@@ -95,15 +104,22 @@ public class Main {
 
         JSONObject json = new JSONObject((Map<String, Object>) evaluatedData);
         Vault vault = new Vault();
-        vault.setKeyBlock(new KeyBlock(json));  // Pass in the non-nested KeyBlock class
-        
+
+        // Set the KeyBlock correctly with the parsed JSON data
+        vault.setKeyBlock(new KeyBlockcreation(json));  // Correct way to set KeyBlock
+
         return vault;
     }
 
-    private static int promptUserForVaultCreation() {
-        String message = "The vault file is empty. Would you like to create a new vault?";
-        String title = "Vault Creation";
-        int choice = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
-        return choice; // Returns 0 for Yes, 1 for No
+    // Helper method to check if a JSON object contains only whitespace or empty data between curly braces
+    private static boolean isEmptyJsonObject(String content) {
+        // Trim the content and remove curly braces
+        String trimmedContent = content.trim();
+        if (trimmedContent.startsWith("{") && trimmedContent.endsWith("}")) {
+            String innerContent = trimmedContent.substring(1, trimmedContent.length() - 1).trim();
+            // If the content between braces is empty or contains only whitespace, it's considered empty
+            return innerContent.isEmpty();
+        }
+        return false;
     }
 }
