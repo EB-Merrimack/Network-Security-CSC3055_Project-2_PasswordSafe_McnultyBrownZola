@@ -15,10 +15,9 @@ public class LookupPrivateKeyPanel extends JPanel {
     private Vault vault;
 
     public LookupPrivateKeyPanel(File vaultFile) {
-        // Load the vault from file
         this.vault = Vault.loadVault(vaultFile);
 
-        // UI Components
+        // UI 
         serviceNameField = new JTextField(15);
         searchButton = new JButton("Lookup");
         resultArea = new JTextArea(5, 30);
@@ -34,8 +33,6 @@ public class LookupPrivateKeyPanel extends JPanel {
         add(inputPanel, BorderLayout.NORTH);
         add(searchButton, BorderLayout.CENTER);
         add(new JScrollPane(resultArea), BorderLayout.SOUTH);
-
-        // Add Action Listener
         searchButton.addActionListener(e -> searchPrivateKey());
     }
 
@@ -47,7 +44,7 @@ public class LookupPrivateKeyPanel extends JPanel {
             return;
         }
 
-        JSONArray privateKeys = vault.getPrivateKeys(); // Get stored private keys
+        JSONArray privateKeys = vault.getPrivateKeys(); 
         boolean found = false;
 
         for (int i = 0; i < privateKeys.size(); i++) {
