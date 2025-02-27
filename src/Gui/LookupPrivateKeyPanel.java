@@ -26,13 +26,21 @@ public class LookupPrivateKeyPanel extends JPanel {
         // Layout Setup
         setLayout(new BorderLayout());
 
+        // Input panel
         JPanel inputPanel = new JPanel(new GridLayout(1, 2, 10, 10));
         inputPanel.add(new JLabel("Service Name:"));
         inputPanel.add(serviceNameField);
 
+        // Button panel to fix layout issue
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(searchButton);
+
+        // Add components
         add(inputPanel, BorderLayout.NORTH);
-        add(searchButton, BorderLayout.CENTER);
+        add(buttonPanel, BorderLayout.CENTER);
         add(new JScrollPane(resultArea), BorderLayout.SOUTH);
+
+        // Button action listener
         searchButton.addActionListener(e -> searchPrivateKey());
     }
 
@@ -44,14 +52,26 @@ public class LookupPrivateKeyPanel extends JPanel {
             return;
         }
 
-        JSONArray privateKeys = vault.getPrivateKeys(); 
+        // Ensure vault is not null
+        if (vault == null) {
+            JOptionPane.showMessageDialog(this, "Vault not loaded properly!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Ensure private keys are not null
+        JSONArray privateKeys = vault.getPrivateKeys();
+        if (privateKeys == null || privateKeys.size() == 0) {
+            resultArea.setText("No private keys stored.");
+            return;
+        }
+
         boolean found = false;
 
         for (int i = 0; i < privateKeys.size(); i++) {
             JSONObject entry = privateKeys.getObject(i);
             if (entry.getString("service").equalsIgnoreCase(serviceName)) {
                 String privateKey = entry.getString("privkey");
-                resultArea.setText("Service: " + serviceName + "\nPrivate Key: " + privateKey);
+                resultArea.setText("🔑 Service: " + serviceName + "\nPrivate Key: " + privateKey);
                 found = true;
                 break;
             }
