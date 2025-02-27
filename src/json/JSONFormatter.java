@@ -1,4 +1,4 @@
-package json;
+/*package json;
 
 public class JSONFormatter {
     
@@ -53,4 +53,4 @@ public class JSONFormatter {
         // Replace unquoted keys with quoted keys
         return json.replaceAll("([,{])([^\"{,}]*)(?=:)", "$1\"$2\"");
     }
-}
+}*/

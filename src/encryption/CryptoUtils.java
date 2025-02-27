@@ -1,4 +1,4 @@
-package encryption;
+/*package encryption;
 
 import org.bouncycastle.crypto.generators.SCrypt;
 import javax.crypto.Cipher;
@@ -56,4 +56,4 @@ public class CryptoUtils {
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, gcmSpec);
         return cipher.doFinal(data);
     }
-}
+}*/

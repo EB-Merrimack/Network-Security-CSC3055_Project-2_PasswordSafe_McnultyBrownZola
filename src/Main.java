@@ -1,4 +1,4 @@
-import java.io.File;
+/*import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -121,5 +121,25 @@ public class Main {
             return innerContent.isEmpty();
         }
         return false;
+    }
+}*/
+
+
+
+
+import javax.swing.JFrame;
+
+import Gui.GUIBuilder;
+
+public class Main {
+
+    public static void main(String[] args) throws Exception {
+        GUIBuilder gui = new GUIBuilder();
+        gui.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        gui.setSize(800, 600);
+        gui.setVisible(true);
+
+        
+     
     }
 }
