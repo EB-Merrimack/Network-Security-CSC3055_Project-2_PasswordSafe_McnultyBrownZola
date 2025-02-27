@@ -1,4 +1,4 @@
-package Vault;
+/*package Vault;
 
 import merrimackutil.json.JsonIO;
 import merrimackutil.json.parser.JSONParser;
@@ -70,4 +70,4 @@ public class VaultManager {
         System.err.println("Error saving vault: " + e.getMessage());
     }
 }
-}
+}*/

@@ -18,16 +18,19 @@ public class Vault implements JSONSerializable {
     private JSONObject vaultKey;
     private JSONArray passwords;
     private JSONArray privKeys;
+    private String vaultKeyIV;   // Stores IV (Base64)
+    private String vaultKeyValue;
 
     public Vault() {
-        if (this.salt == null) {
+        if (this.salt == null || this.salt.isEmpty()) {
             generateSalt();
-        }        
+        }     
         this.rootPasswordHash = null; // Set when a root password is created
         this.vaultKey = new JSONObject();
         this.passwords = new JSONArray();
         this.privKeys = new JSONArray();
     }
+    
 
     public String getRootPasswordHash() {
         return this.rootPasswordHash;
@@ -67,7 +70,13 @@ public class Vault implements JSONSerializable {
         JSONObject json = new JSONObject();
         json.put("salt", this.salt);
         json.put("rootPasswordHash", this.rootPasswordHash);
-        json.put("vaultkey", this.vaultKey);  // ✅ Store as JSONObject
+        
+        JSONObject vaultKeyObject = new JSONObject();
+        vaultKeyObject.put("iv", this.vaultKeyIV);
+        vaultKeyObject.put("key", this.vaultKeyValue);
+        json.put("vaultkey", vaultKeyObject);
+
+
         json.put("passwords", this.passwords);
         json.put("privkeys", this.privKeys);
         return json;
@@ -81,22 +90,38 @@ public class Vault implements JSONSerializable {
         }
         JSONObject json = (JSONObject) jsonType;
 
-        this.salt = json.getString("salt");
+        this.salt = json.containsKey("salt") ? json.getString("salt") : null;
+    
+    // ✅ If salt is missing, generate a new one
+    if (this.salt == null || this.salt.isEmpty()) {
+        generateSalt();
+    }
+
         this.rootPasswordHash = json.getString("rootPasswordHash");
-        this.vaultKey = json.getObject("vaultkey");
+        JSONObject vaultKeyJSON = json.getObject("vaultkey");
+        if (vaultKeyJSON != null) {
+            this.vaultKeyIV = vaultKeyJSON.getString("iv");
+            this.vaultKeyValue = vaultKeyJSON.getString("key");
+        } else {
+            this.vaultKeyIV = "";
+            this.vaultKeyValue = "";
+        }
+
         this.passwords = json.getArray("passwords");
         this.privKeys = json.getArray("privkeys");
     }
 
-    // 🔹 Set Vault Key
     public void setVaultKey(String iv, String key) {
-        vaultKey.put("iv", iv);
-        vaultKey.put("key", key);
+        this.vaultKeyIV = iv;
+        this.vaultKeyValue = key;
     }
-
-    // 🔹 Get Vault Key (as an object)
-    public JSONObject getVaultKey() {
-        return vaultKey;
+    
+    public String getVaultKeyIV() {
+        return this.vaultKeyIV;
+    }
+    
+    public String getVaultKeyValue() {
+        return this.vaultKeyValue;
     }
 
     // 🔹 Add a new password entry

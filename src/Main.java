@@ -12,7 +12,6 @@ import java.util.Map;
 //import JSON.JSONFormatter; // Assuming the formatter class is in the json package/folder
 import Vault.Vault;
 //import Vault.VaultInitialization;
-import Vault.VaultManager;
 
 public class Main {
     //private static final String vaultfile = "src/json/vault.json";
