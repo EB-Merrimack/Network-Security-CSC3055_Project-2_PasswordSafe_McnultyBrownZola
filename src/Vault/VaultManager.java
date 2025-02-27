@@ -3,6 +3,7 @@ package Vault;
 import merrimackutil.json.JsonIO;
 import merrimackutil.json.parser.JSONParser;
 import merrimackutil.json.parser.ast.SyntaxTree;
+import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.types.JSONType;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,48 +22,59 @@ public class VaultManager {
     }
 
     public Vault loadVault() {
-        System.out.println("Loading vault..."); // ✅ Debugging Output
-
         File file = new File(VAULT_FILE);
+
         if (file.exists()) {
-            System.out.println("Vault file found: " + file.getAbsolutePath()); // ✅ Debugging Output
+            System.out.println("Vault file found: " + file.getAbsolutePath());
             try {
                 JSONParser parser = new JSONParser(file);
                 SyntaxTree tree = parser.parse();
-    
-                if (tree.getRootNode() == null) { // ✅ Handle null SyntaxNode
+
+                if (tree == null || tree.getRootNode() == null) {
                     System.err.println("Error: Vault JSON is invalid, root node is null!");
-                    return new Vault(); // ✅ Return a new Vault instead of crashing
+                    return createNewVault();
                 }
-    
+
                 JSONType jsonObject = (JSONType) tree.getRootNode().evaluate();
-    
-                Vault loadedVault = new Vault();
-                if (jsonObject != null) {
-                    try {
-                        loadedVault.deserialize(jsonObject);
-                        System.out.println("Vault loaded successfully.");
-                        return loadedVault;
-                    } catch (InvalidObjectException e) {
-                        System.err.println("Error: Invalid Vault JSON format - " + e.getMessage());
-                    }
-                } else {
-                    System.err.println("Error: Loaded JSON is null!");
+                if (jsonObject == null) {
+                    System.err.println("Error: Parsed JSON is null!");
+                    return createNewVault();
                 }
-            } catch (FileNotFoundException e) {
-                System.err.println("Error loading vault: " + e.getMessage());
+
+                Vault loadedVault = new Vault();
+                loadedVault.deserialize(jsonObject);
+                System.out.println("Vault loaded successfully.");
+                return loadedVault;
+            } catch (Exception e) {
+                System.err.println("Error parsing vault: " + e.getMessage());
             }
         }
-    
-        System.out.println("Creating new vault...");
+
+        return createNewVault(); // ✅ Ensure a fresh vault is created if the file is missing or invalid
+    }
+
+    private Vault createNewVault() {
+        System.out.println("Creating a new vault...");
         Vault newVault = new Vault();
-        saveVault(); // ✅ Ensure vault is saved on first-time creation
+        this.vault = newVault; // ✅ Ensure `vault` is assigned
+        saveVault();  // ✅ Save the newly created vault
         return newVault;
     }
 
     public void saveVault() {
         File file = new File(VAULT_FILE);
         try {
+            JSONObject jsonVault = (JSONObject) vault.toJSONType();
+            
+            if (jsonVault == null || jsonVault.isEmpty()) { // ✅ Prevent saving empty JSON
+                System.err.println("Error: Vault JSON is empty, not saving.");
+                return;
+            }
+    
+            // ✅ Manually format JSON for readability
+            String formattedJson = jsonVault.toString();
+            formattedJson = formattedJson.replace(",", ",\n"); // ✅ Add line breaks
+            
             JsonIO.writeSerializedObject(vault, file);
             System.out.println("Vault saved successfully.");
         } catch (FileNotFoundException e) {

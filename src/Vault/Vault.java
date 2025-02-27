@@ -277,25 +277,6 @@ public class Vault implements JSONSerializable{
         this.privKeys = (jsonPrivKeys != null) ? convertToArrayNode(jsonPrivKeys) : new ArrayNode();
     }
 
-    private ArrayNode convertToArrayNode(JSONArray jsonArray) {
-        ArrayNode arrayNode = new ArrayNode();
-        for (Object obj : jsonArray) { 
-            if (obj instanceof JSONType) { 
-                JSONType jsonElement = (JSONType) obj;
-    
-               
-                SyntaxNode node;
-                if (jsonElement instanceof SyntaxNode) {
-                    node = (SyntaxNode) jsonElement; 
-                } else {
-                    node = new JSONParser(jsonElement.toString()).parse().getRootNode(); // Parse if necessary
-                }
-    
-                arrayNode.addValue(node); 
-            }
-        }
-        return arrayNode;
-    }
 
     @Override
     public JSONType toJSONType() {
@@ -323,7 +304,7 @@ public class Vault implements JSONSerializable{
             }
         }
         json.put("vaultkey", vaultKeyObject);
-    
+
         // ✅ Convert ArrayNode manually since direct conversion isn't working
         json.put("passwords", convertArrayNodeToJSONArray(this.passwords));
         json.put("privkeys", convertArrayNodeToJSONArray(this.privKeys));
@@ -331,25 +312,52 @@ public class Vault implements JSONSerializable{
         return json;
     }
 
+    private ArrayNode convertToArrayNode(JSONArray jsonArray) {
+        ArrayNode arrayNode = new ArrayNode();
+        for (Object obj : jsonArray) { 
+            if (obj instanceof JSONType) { 
+                JSONType jsonElement = (JSONType) obj;
+    
+               
+                SyntaxNode node;
+                if (jsonElement instanceof SyntaxNode) {
+                    node = (SyntaxNode) jsonElement; 
+                } else {
+                    node = new JSONParser(jsonElement.toString()).parse().getRootNode(); // Parse if necessary
+                }
+    
+                arrayNode.addValue(node); 
+            }
+        }
+        return arrayNode;
+    }
+
     private JSONArray convertArrayNodeToJSONArray(ArrayNode arrayNode) {
         JSONArray jsonArray = new JSONArray();
+    
+        if (arrayNode == null) { // ✅ Prevent null pointer exceptions
+            return jsonArray;
+        }
+    
         try {
-            Field valuesField = ArrayNode.class.getDeclaredField("values");
-            valuesField.setAccessible(true);
+            Field valsField = ArrayNode.class.getDeclaredField("vals"); // 🔍 Find the field
+            valsField.setAccessible(true); // ✅ Allow access to private field
     
             @SuppressWarnings("unchecked")
-            List<SyntaxNode> values = (List<SyntaxNode>) valuesField.get(arrayNode);
+            List<SyntaxNode> values = (List<SyntaxNode>) valsField.get(arrayNode);
     
-            for (SyntaxNode node : values) {
-                if (node instanceof JSONSerializable) {
-                    jsonArray.add(((JSONSerializable) node).toJSONType());
+            for (SyntaxNode node : values) { 
+                Object value = node.evaluate(); // ✅ Get evaluated value
+                if (value instanceof JSONType) {
+                    jsonArray.add(value); // ✅ Add as JSON object
                 } else {
-                    jsonArray.add(node.toString()); // ✅ Convert each entry to JSON
+                    jsonArray.add(value.toString()); // ✅ Convert non-JSON types to String
                 }
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
+            System.err.println("Error accessing values of ArrayNode: " + e.getMessage());
         }
+    
         return jsonArray;
     }
     
