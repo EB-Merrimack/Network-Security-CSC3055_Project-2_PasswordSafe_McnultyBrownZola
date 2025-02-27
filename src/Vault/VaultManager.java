@@ -63,22 +63,11 @@ public class VaultManager {
 
     public void saveVault() {
         File file = new File(VAULT_FILE);
-        try {
-            JSONObject jsonVault = (JSONObject) vault.toJSONType();
-            
-            if (jsonVault == null || jsonVault.isEmpty()) { // ✅ Prevent saving empty JSON
-                System.err.println("Error: Vault JSON is empty, not saving.");
-                return;
-            }
-    
-            // ✅ Manually format JSON for readability
-            String formattedJson = jsonVault.toString();
-            formattedJson = formattedJson.replace(",", ",\n"); // ✅ Add line breaks
-            
-            JsonIO.writeSerializedObject(vault, file);
-            System.out.println("Vault saved successfully.");
-        } catch (FileNotFoundException e) {
-            System.err.println("Error saving vault: " + e.getMessage());
-        }
+    try {
+        JsonIO.writeSerializedObject(vault, file); // ✅ Uses MerrimackUtils' built-in formatting
+        System.out.println("Vault saved successfully.");
+    } catch (FileNotFoundException e) {
+        System.err.println("Error saving vault: " + e.getMessage());
     }
+}
 }

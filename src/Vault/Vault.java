@@ -258,21 +258,22 @@ public class Vault implements JSONSerializable{
     
         JSONObject json = (JSONObject) arg0;
     
-        // Load vault components
+        // ✅ Load salt & root password hash
         this.salt = json.getString("salt");
         this.rootPasswordHash = json.getString("rootPasswordHash");
+    
+        // ✅ Convert `vaultkey` from JSON back into a `ClassNode`
         JSONType vaultKeyJSON = json.getObject("vaultkey");
         if (vaultKeyJSON instanceof JSONObject) {
             this.vaultKey = (ClassNode) new JSONParser(vaultKeyJSON.toString()).parse().getRootNode();
         } else {
-            this.vaultKey = new ClassNode(); // Default empty ClassNode if missing
+            this.vaultKey = new ClassNode(); // ✅ Default empty ClassNode if missing
         }
-            this.vaultData = (ClassNode) new JSONParser(json.toString()).parse().getRootNode();
     
-        // Extract passwords and private keys
+        // ✅ Convert `passwords` and `privkeys` from JSONArrays back into `ArrayNode`
         JSONArray jsonPasswords = json.getArray("passwords");
         this.passwords = (jsonPasswords != null) ? convertToArrayNode(jsonPasswords) : new ArrayNode();
-
+    
         JSONArray jsonPrivKeys = json.getArray("privkeys");
         this.privKeys = (jsonPrivKeys != null) ? convertToArrayNode(jsonPrivKeys) : new ArrayNode();
     }
@@ -282,50 +283,64 @@ public class Vault implements JSONSerializable{
     public JSONType toJSONType() {
         JSONObject json = new JSONObject();
     
-        json.put("salt", (this.salt != null) ? this.salt : "");  
+        json.put("salt", (this.salt != null) ? this.salt : "");
         json.put("rootPasswordHash", (this.rootPasswordHash != null) ? this.rootPasswordHash : "");
     
-        // ✅ Convert vaultKey to a proper JSON object
-        JSONObject vaultKeyObject = new JSONObject();
-        if (this.vaultKey != null) {
-            try {
-                Field kvPairsField = ClassNode.class.getDeclaredField("kvPairs");
-                kvPairsField.setAccessible(true);
+        // ✅ Store `vaultkey` as a `ClassNode`, not `JSONObject`
+        json.put("vaultkey", convertClassNodeToJSON(this.vaultKey));
     
-                @SuppressWarnings("unchecked")
-                List<KeyValueNode> keyValuePairs = (List<KeyValueNode>) kvPairsField.get(this.vaultKey);
-    
-                for (KeyValueNode kv : keyValuePairs) {
-                    Tuple<String, Object> pair = (Tuple<String, Object>) kv.evaluate();
-                    vaultKeyObject.put(pair.getFirst(), pair.getSecond().toString());
-                }
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-        json.put("vaultkey", vaultKeyObject);
-
-        // ✅ Convert ArrayNode manually since direct conversion isn't working
+        // ✅ Convert `ArrayNode` to JSON properly
         json.put("passwords", convertArrayNodeToJSONArray(this.passwords));
         json.put("privkeys", convertArrayNodeToJSONArray(this.privKeys));
     
         return json;
     }
 
+
+    private ClassNode convertClassNodeToJSON(ClassNode classNode) {
+        ClassNode newClassNode = new ClassNode();
+        if (classNode == null) {
+            return newClassNode; // ✅ Return an empty ClassNode if missing
+        }
+    
+        try {
+            Field kvPairsField = ClassNode.class.getDeclaredField("kvPairs");
+            kvPairsField.setAccessible(true);
+    
+            @SuppressWarnings("unchecked")
+            List<KeyValueNode> keyValuePairs = (List<KeyValueNode>) kvPairsField.get(classNode);
+    
+            for (KeyValueNode kv : keyValuePairs) {
+                Tuple<String, Object> pair = (Tuple<String, Object>) kv.evaluate();
+                newClassNode.addKVPair(new KeyValueNode(
+                    new TokenNode(new Token(TokenType.STRING, pair.getFirst())),
+                    new TokenNode(new Token(TokenType.STRING, pair.getSecond().toString()))
+                ));
+            }
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            System.err.println("Error converting ClassNode: " + e.getMessage());
+        }
+    
+        return newClassNode;
+    }
+
     private ArrayNode convertToArrayNode(JSONArray jsonArray) {
         ArrayNode arrayNode = new ArrayNode();
+        if (jsonArray == null) {
+            return arrayNode;
+        }
+
         for (Object obj : jsonArray) { 
             if (obj instanceof JSONType) { 
                 JSONType jsonElement = (JSONType) obj;
-    
-               
+
                 SyntaxNode node;
                 if (jsonElement instanceof SyntaxNode) {
                     node = (SyntaxNode) jsonElement; 
                 } else {
-                    node = new JSONParser(jsonElement.toString()).parse().getRootNode(); // Parse if necessary
+                    node = new JSONParser(jsonElement.toString()).parse().getRootNode(); // ✅ Parse if necessary
                 }
-    
+
                 arrayNode.addValue(node); 
             }
         }
@@ -333,32 +348,30 @@ public class Vault implements JSONSerializable{
     }
 
     private JSONArray convertArrayNodeToJSONArray(ArrayNode arrayNode) {
-        JSONArray jsonArray = new JSONArray();
-    
-        if (arrayNode == null) { // ✅ Prevent null pointer exceptions
-            return jsonArray;
-        }
-    
-        try {
-            Field valsField = ArrayNode.class.getDeclaredField("vals"); // 🔍 Find the field
-            valsField.setAccessible(true); // ✅ Allow access to private field
-    
-            @SuppressWarnings("unchecked")
-            List<SyntaxNode> values = (List<SyntaxNode>) valsField.get(arrayNode);
-    
-            for (SyntaxNode node : values) { 
-                Object value = node.evaluate(); // ✅ Get evaluated value
-                if (value instanceof JSONType) {
-                    jsonArray.add(value); // ✅ Add as JSON object
-                } else {
-                    jsonArray.add(value.toString()); // ✅ Convert non-JSON types to String
-                }
-            }
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            System.err.println("Error accessing values of ArrayNode: " + e.getMessage());
-        }
-    
+    JSONArray jsonArray = new JSONArray();
+    if (arrayNode == null) {
         return jsonArray;
     }
+
+    try {
+        Field valsField = ArrayNode.class.getDeclaredField("vals");
+        valsField.setAccessible(true);
+
+        @SuppressWarnings("unchecked")
+        List<SyntaxNode> values = (List<SyntaxNode>) valsField.get(arrayNode);
+
+        for (SyntaxNode node : values) {
+            if (node instanceof JSONSerializable) {
+                jsonArray.add(((JSONSerializable) node).toJSONType());
+            } else {
+                jsonArray.add(node.toString()); // ✅ Fallback to string representation
+            }
+        }
+    } catch (NoSuchFieldException | IllegalAccessException e) {
+        System.err.println("Error converting ArrayNode: " + e.getMessage());
+    }
+
+    return jsonArray;
+}
     
 }
