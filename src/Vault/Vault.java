@@ -91,7 +91,7 @@ public class Vault implements JSONSerializable {
     }
 
     // 🔹 Generate a random Base64-encoded salt
-    private String generateSalt() {
+    public String generateSalt() {
         byte[] saltBytes = new byte[16];
         new java.security.SecureRandom().nextBytes(saltBytes);
         return Base64.getEncoder().encodeToString(saltBytes);

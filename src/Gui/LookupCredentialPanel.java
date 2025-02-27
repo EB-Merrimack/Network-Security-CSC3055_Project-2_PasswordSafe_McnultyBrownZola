@@ -77,7 +77,7 @@ public class LookupCredentialPanel extends JPanel {
             String iv = entry.getString("iv");
 
             // Derive the vault key using the root password
-            SecretKey vaultKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.getSalt()));
+            SecretKey vaultKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.generateSalt()));
 
             byte[] decryptedBytes = VaultEncryption.decryptAESGCM(
                 Base64.getDecoder().decode(encryptedPass),
