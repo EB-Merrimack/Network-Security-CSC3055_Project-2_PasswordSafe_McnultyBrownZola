@@ -2,14 +2,20 @@ package Gui;
 
 import javax.swing.*;
 
-import Vault.VaultManager;
+import Vault.Vault;
+import merrimackutil.json.JsonIO;
+import merrimackutil.json.types.JSONObject;
 
 import java.awt.*;
+import java.io.File;
 
 public class GUIBuilder extends JFrame{
     private CardLayout cardLayout;
     private JPanel mainPanel;
-    private VaultManager vaultManager;
+    private Vault vault;
+    private static final String VAULT_FILE = "vault.json";
+
+    
 
 
     public GUIBuilder() {
@@ -22,16 +28,40 @@ public class GUIBuilder extends JFrame{
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
-        vaultManager = new VaultManager(); // ✅ Initialize VaultManager
-        System.out.println("VaultManager initialized in GUI.");
+        File file = new File(VAULT_FILE);
+        if (file.exists()) {
+            try {
+                JSONObject jsonVault = JsonIO.readObject(file);
+                vault = new Vault();
+                vault.deserialize(jsonVault);
+                System.out.println("Vault loaded successfully.");
+            } catch (Exception e) {
+                System.err.println("Error loading vault: " + e.getMessage());
+                vault = new Vault(); // Create a new vault if loading fails
+            }
+        } else {
+            System.out.println("Creating a new vault...");
+            vault = new Vault();
+            saveVault(); // Save new vault immediately
+        }
 
-        mainPanel.add(new LoginPanel(this, vaultManager), "Login");
-        mainPanel.add(new MainPanel(this, vaultManager), "Main");
+        // ✅ Add login & main menu panels
+        mainPanel.add(new LoginPanel(this, vault), "Login");
+        mainPanel.add(new MainPanel(this, vault), "Main");
         
         add(mainPanel);
     
         // Initially show the Login panel
         cardLayout.show(mainPanel, "Login");
+    }
+
+    public void saveVault() {
+        try {
+            JsonIO.writeFormattedObject(vault, new File(VAULT_FILE));
+            System.out.println("Vault saved successfully.");
+        } catch (Exception e) {
+            System.err.println("Error saving vault: " + e.getMessage());
+        }
     }
     
     public void showPanel(String panelName) {
@@ -42,7 +72,7 @@ public class GUIBuilder extends JFrame{
         mainPanel.add(panel, panelName);  // ✅ Dynamically adds a new panel if needed
         cardLayout.show(mainPanel, panelName);
     }
-    
+
     
     public static void main(String[] args) {
         SwingUtilities.invokeLater(GUIBuilder::new);
