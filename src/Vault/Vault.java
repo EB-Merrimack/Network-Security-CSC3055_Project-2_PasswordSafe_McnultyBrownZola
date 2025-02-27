@@ -300,32 +300,57 @@ public class Vault implements JSONSerializable{
     @Override
     public JSONType toJSONType() {
         JSONObject json = new JSONObject();
-        json.put("salt", (this.salt != null) ? this.salt : "");  // ✅ Ensure salt is not null
+    
+        json.put("salt", (this.salt != null) ? this.salt : "");  
         json.put("rootPasswordHash", (this.rootPasswordHash != null) ? this.rootPasswordHash : "");
-        
-        
-        // ✅ Ensure vaultkey is stored as a properly formatted JSON object
+    
+        // ✅ Convert vaultKey to a proper JSON object
         JSONObject vaultKeyObject = new JSONObject();
+        if (this.vaultKey != null) {
+            try {
+                Field kvPairsField = ClassNode.class.getDeclaredField("kvPairs");
+                kvPairsField.setAccessible(true);
+    
+                @SuppressWarnings("unchecked")
+                List<KeyValueNode> keyValuePairs = (List<KeyValueNode>) kvPairsField.get(this.vaultKey);
+    
+                for (KeyValueNode kv : keyValuePairs) {
+                    Tuple<String, Object> pair = (Tuple<String, Object>) kv.evaluate();
+                    vaultKeyObject.put(pair.getFirst(), pair.getSecond().toString());
+                }
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        json.put("vaultkey", vaultKeyObject);
+    
+        // ✅ Convert ArrayNode manually since direct conversion isn't working
+        json.put("passwords", convertArrayNodeToJSONArray(this.passwords));
+        json.put("privkeys", convertArrayNodeToJSONArray(this.privKeys));
+    
+        return json;
+    }
+
+    private JSONArray convertArrayNodeToJSONArray(ArrayNode arrayNode) {
+        JSONArray jsonArray = new JSONArray();
         try {
-            Field kvPairsField = ClassNode.class.getDeclaredField("kvPairs");
-            kvPairsField.setAccessible(true);
+            Field valuesField = ArrayNode.class.getDeclaredField("values");
+            valuesField.setAccessible(true);
     
             @SuppressWarnings("unchecked")
-            List<KeyValueNode> keyValuePairs = (List<KeyValueNode>) kvPairsField.get(this.vaultKey);
+            List<SyntaxNode> values = (List<SyntaxNode>) valuesField.get(arrayNode);
     
-            for (KeyValueNode kv : keyValuePairs) {
-                Tuple<String, Object> pair = (Tuple<String, Object>) kv.evaluate();
-                vaultKeyObject.put(pair.getFirst(), pair.getSecond().toString());
+            for (SyntaxNode node : values) {
+                if (node instanceof JSONSerializable) {
+                    jsonArray.add(((JSONSerializable) node).toJSONType());
+                } else {
+                    jsonArray.add(node.toString()); // ✅ Convert each entry to JSON
+                }
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
-        
-        json.put("vaultkey", vaultKeyObject);
-        json.put("passwords", this.passwords);
-        json.put("privkeys", this.privKeys);
-        //json.put("rootPasswordHash", this.rootPasswordHash);
-        return json;
+        return jsonArray;
     }
     
 }
