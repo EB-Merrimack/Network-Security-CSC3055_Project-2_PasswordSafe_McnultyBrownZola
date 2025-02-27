@@ -12,10 +12,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
+import javax.crypto.SecretKey;
+
+
 public class Vault implements JSONSerializable {
     private String salt;
     private String rootPasswordHash;
-    private JSONObject vaultKey;
     private JSONArray passwords;
     private JSONArray privKeys;
     private String vaultKeyIV;   // Stores IV (Base64)
@@ -26,7 +28,8 @@ public class Vault implements JSONSerializable {
             generateSalt();
         }     
         this.rootPasswordHash = null; // Set when a root password is created
-        this.vaultKey = new JSONObject();
+        this.vaultKeyIV = "";
+        this.vaultKeyValue = "";
         this.passwords = new JSONArray();
         this.privKeys = new JSONArray();
     }
@@ -38,12 +41,42 @@ public class Vault implements JSONSerializable {
 
     // ✅ Set Root Password (Hash & Save)
     public void setRootPassword(String password) {
-        this.rootPasswordHash = hashPassword(password);
+    this.rootPasswordHash = hashPassword(password);
+
+    // ✅ Generate and store a salt if missing
+    if (this.salt == null || this.salt.isEmpty()) {
+        byte[] saltBytes = VaultEncryption.generateRandomIV();
+        this.salt = Base64.getEncoder().encodeToString(saltBytes);
     }
+
+    // ✅ Generate random IV for encryption
+    byte[] iv = VaultEncryption.generateRandomIV();
+    this.vaultKeyIV = Base64.getEncoder().encodeToString(iv);
+
+    try {
+        // ✅ Generate a new vault key and encrypt it
+        byte[] vaultKey = VaultEncryption.generateRandomKey();
+        SecretKey rootKey = VaultEncryption.deriveRootKey(password, Base64.getDecoder().decode(this.salt));
+        byte[] encryptedVaultKey = VaultEncryption.encryptAESGCM(vaultKey, rootKey, iv);
+
+        this.vaultKeyValue = Base64.getEncoder().encodeToString(encryptedVaultKey);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
 
     // ✅ Verify Password
     public boolean verifyRootPassword(String password) {
-        return hashPassword(password).equals(rootPasswordHash);
+        try {
+            SecretKey rootKey = VaultEncryption.deriveRootKey(password, Base64.getDecoder().decode(this.salt));
+            byte[] decryptedVaultKey = VaultEncryption.decryptAESGCM(
+                Base64.getDecoder().decode(this.vaultKeyValue), rootKey, Base64.getDecoder().decode(this.vaultKeyIV)
+            );
+    
+            return decryptedVaultKey.length == 32; // ✅ Check if decryption was successful
+        } catch (Exception e) {
+            return false; //  If decryption fails, the password is incorrect
+        }
     }
 
     // ✅ Hash Password Using SHA-256

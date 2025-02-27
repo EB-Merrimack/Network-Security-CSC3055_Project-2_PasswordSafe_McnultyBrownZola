@@ -1,13 +1,13 @@
 {
-   "salt" : null,
+   "salt" : "LvQ8zfQ7H3yxqTty",
    "privkeys" : [
    ],
    "passwords" : [
    ],
    "rootPasswordHash" : "7NcYcNGWMxapfjrDQIyYNa2M8PPBvHA1J8MCZVNPda4=",
    "vaultkey" : {
-      "iv" : null,
-      "key" : null
+      "iv" : "nDV5S98t+CxGtx03",
+      "key" : "r13lH8N4dt4bY2Z9yFLJJxlwZ0/dZ3g948gxv3o+N0qvnV2S3jU6aapIWS8vWzn2"
    }
 }
 
