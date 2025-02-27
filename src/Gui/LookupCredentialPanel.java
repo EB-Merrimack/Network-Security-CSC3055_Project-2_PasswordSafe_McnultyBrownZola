@@ -61,9 +61,15 @@ public class LookupCredentialPanel extends JPanel {
     private Optional<String> getCredential(String serviceName, String rootPassword) {
         JSONArray passwords = vault.getPasswords();
 
+        System.out.println("🔍 Searching for service: " + serviceName); // Debug log
+
         for (int i = 0; i < passwords.size(); i++) {
             JSONObject entry = passwords.getObject(i);
-            if (entry.getString("service").equalsIgnoreCase(serviceName)) {
+            String storedServiceName = entry.getString("service");
+            System.out.println("🔑 Found service in vault: " + storedServiceName); // Debug log
+
+            if (storedServiceName.equalsIgnoreCase(serviceName)) {
+                System.out.println("Match found, decrypting password..."); // Debug log
                 return Optional.of("User: " + entry.getString("user") + "\nPassword: " + decryptPassword(entry, rootPassword));
             }
         }
@@ -76,8 +82,9 @@ public class LookupCredentialPanel extends JPanel {
             String encryptedPass = entry.getString("pass");
             String iv = entry.getString("iv");
 
-            // Derive the vault key using the root password
+            // Derive vault key using the root password
             SecretKey vaultKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.generateSalt()));
+            System.out.println("🔐 Decrypting with key: " + Base64.getEncoder().encodeToString(vaultKey.getEncoded())); // Debug log
 
             byte[] decryptedBytes = VaultEncryption.decryptAESGCM(
                 Base64.getDecoder().decode(encryptedPass),
@@ -85,8 +92,10 @@ public class LookupCredentialPanel extends JPanel {
                 Base64.getDecoder().decode(iv)
             );
 
+            System.out.println("Decryption successful!"); // Debug log
             return new String(decryptedBytes);
         } catch (Exception e) {
+            e.printStackTrace(); // Log exception details
             return "[Error decrypting password]";
         }
     }
