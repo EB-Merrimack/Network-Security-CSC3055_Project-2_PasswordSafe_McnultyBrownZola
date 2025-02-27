@@ -13,7 +13,7 @@ public class GUIBuilder extends JFrame{
     private CardLayout cardLayout;
     private JPanel mainPanel;
     private Vault vault;
-    private static final String VAULT_FILE = "src/Vault/vault.json";
+    private static final String VAULT_FILE = "src/json/vault.json";
 
     
 

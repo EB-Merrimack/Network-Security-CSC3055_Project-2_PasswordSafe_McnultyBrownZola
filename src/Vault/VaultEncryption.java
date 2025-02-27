@@ -5,7 +5,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.security.*;
-import java.util.Base64;
 
 public class VaultEncryption {
     static {
