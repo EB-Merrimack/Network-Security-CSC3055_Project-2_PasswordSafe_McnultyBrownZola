@@ -9,11 +9,14 @@ import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.parser.JSONParser;
 import merrimackutil.json.parser.ast.SyntaxTree;
 import java.util.Map;
-import JSON.JSONFormatter; // Assuming the formatter class is in the json package/folder
+//import JSON.JSONFormatter; // Assuming the formatter class is in the json package/folder
+import Vault.Vault;
+//import Vault.VaultInitialization;
+import Vault.VaultManager;
 
 public class Main {
-    private static final String vaultfile = "src/json/vault.json";
-    public static KeyBlockcreation keyBlock;
+    //private static final String vaultfile = "src/json/vault.json";
+    //public static KeyBlockcreation keyBlock;
 
     public static void main(String[] args) throws Exception {
         GUIBuilder gui = new GUIBuilder();
@@ -21,7 +24,11 @@ public class Main {
         gui.setSize(800, 600);
         gui.setVisible(true);
 
-        File vaultFile = new File(vaultfile);
+        
+    }
+}
+
+       /*  File vaultFile = new File(vaultfile);
         final Vault[] vault = new Vault[1]; // Use an array to hold the Vault object reference
 
         if (!vaultFile.exists()) {
@@ -122,4 +129,4 @@ public class Main {
         }
         return false;
     }
-}
+}*/

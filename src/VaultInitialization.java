@@ -1,4 +1,6 @@
-import javax.swing.*;
+/*import javax.swing.*;
+
+import Vault.Vault;
 import encryption.CryptoUtils;
 import java.io.File;
 import java.io.IOException;
@@ -62,4 +64,4 @@ public class VaultInitialization {
 
         return newVault;
     }
-}
+}*/
