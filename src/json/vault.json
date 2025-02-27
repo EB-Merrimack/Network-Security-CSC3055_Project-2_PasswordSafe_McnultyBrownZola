@@ -1,7 +1,13 @@
 {
-    salt=ig/sFXRNSqCpQu47itVuqQ==,
-     vaultkey={
-        iv=6LdMgdjs/20/+aug57rY0w==,
-         key=BXhqjez468/oMHGA9VYYKCChkHhM2gq6piDIrioHyDrMvuvFxd6BwRe4U6I/Z9J0
-    }
+   "salt" : "yZ1sg68mKaoDqNLV",
+   "privkeys" : [
+   ],
+   "passwords" : [
+   ],
+   "rootPasswordHash" : "7NcYcNGWMxapfjrDQIyYNa2M8PPBvHA1J8MCZVNPda4=",
+   "vaultkey" : {
+      "iv" : "JZHEwAhMH8JN5So5",
+      "key" : "cDs2Aw7lWZYTI8HxEP7YtkrU0wrsd/pXkbRNze4NxxWNVwx+BTZi+bKwWBh7H5g9"
+   }
 }
+

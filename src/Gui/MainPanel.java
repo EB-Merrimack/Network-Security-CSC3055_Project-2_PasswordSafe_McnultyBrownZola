@@ -1,9 +1,12 @@
 package Gui;
 
+
 import javax.swing.*;
 
+import Vault.Vault;
+
 public class MainPanel extends JPanel{
-    public MainPanel(GUIBuilder parent) {
+    public MainPanel(GUIBuilder parent, Vault vault) {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         
         JLabel welcomeLabel = new JLabel("Welcome to the Secrets Vault");
