@@ -208,4 +208,9 @@ public class Vault implements JSONSerializable {
 
     public JSONArray getPasswords() {
        return this.passwords;     }
+
+
+    public JSONArray getPrivateKeys() {
+        return this.privKeys;
+    }
 }
