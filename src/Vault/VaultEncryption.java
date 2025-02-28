@@ -48,11 +48,18 @@ public class VaultEncryption {
 
     // ✅ Decrypts data using AES-GCM
     public static byte[] decryptAESGCM(byte[] ciphertext, SecretKey key, byte[] iv) throws Exception {
-        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC");
-        GCMParameterSpec gcmSpec = new GCMParameterSpec(128, iv);
-        cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec);
-        return cipher.doFinal(ciphertext);
+        try {
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC");
+            GCMParameterSpec gcmSpec = new GCMParameterSpec(128, iv);
+            cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec);
+            return cipher.doFinal(ciphertext);
+        } catch (GeneralSecurityException e) {
+            // Handle GCM MAC failure here (authentication tag mismatch)
+            throw new SecurityException("GCM decryption failed: " + e.getMessage(), e);
+        }
     }
+
+    // ✅ Gets the Vault Key by decrypting it with the root key
     public static SecretKey getVaultKey(Vault vault, SecretKey rootKey) throws Exception {
         if (vault.getVaultKeyValue().isEmpty() || vault.getVaultKeyIV().isEmpty()) {
             throw new IllegalStateException("Vault key or IV is missing.");
@@ -69,5 +76,4 @@ public class VaultEncryption {
     
         return new SecretKeySpec(decryptedVaultKey, "AES");
     }
-    
 }
