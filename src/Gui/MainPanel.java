@@ -53,9 +53,10 @@ public class MainPanel extends JPanel {
         JPanel logoutPanel = new JPanel();
         logoutPanel.add(logoutButton);
 
-        // Add the logoutPanel to the top and contentPanel to the center
-        add(logoutPanel, BorderLayout.NORTH);
+        // Add the logoutPanel to the bottom and contentPanel to the center
+       
         add(contentPanel, BorderLayout.CENTER);
+        add(logoutPanel, BorderLayout.SOUTH);
     }
 
     // Method to logout and seal the vault
@@ -72,5 +73,6 @@ public class MainPanel extends JPanel {
         // Show a message and return to login panel
         JOptionPane.showMessageDialog(this, "You have logged out and the vault has been sealed.");
         parent.showPanel("Login");  // Show login panel after logout
+        LoginPanel.isUserLoggedIn = false;  // Update login status
     }
 }

@@ -13,7 +13,7 @@ public class LoginPanel extends JPanel {
     private JButton actionButton;
     private JLabel messageLabel;
     private JLabel confirmPasswordLabel;  // Declare confirmPasswordLabel here
-
+    public static boolean isUserLoggedIn = false;
     public LoginPanel(GUIBuilder parent, Vault vault) {
         this.vault = vault;
         this.parent = parent;
@@ -98,6 +98,7 @@ public class LoginPanel extends JPanel {
 
         vault.setRootPassword(password);
         parent.saveVault();
+        isUserLoggedIn = true;
         JOptionPane.showMessageDialog(this, "Vault initialized successfully!");
         parent.showPanel("Main");
     }
@@ -108,6 +109,7 @@ public class LoginPanel extends JPanel {
         if (vault.verifyRootPassword(password)) {
             JOptionPane.showMessageDialog(this, "Access granted.");
             parent.showPanel("Main");
+            isUserLoggedIn = true;
         } else {
             showMessage("Incorrect password! Try again.");
         }

@@ -50,29 +50,33 @@ public class GUIBuilder extends JFrame {
         // Initially show the Login panel
         cardLayout.show(mainPanel, "Login");
 
-        // Set custom close operation with a confirmation prompt if logged in
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-                if (isUserLoggedIn()) {
-                    int result = JOptionPane.showConfirmDialog(GUIBuilder.this,
-                            "You are currently logged in. Would you like to log out before closing?",
-                            "Confirm Logout", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-                    if (result == JOptionPane.YES_OPTION) {
-                        // Log out and seal the vault
-                        logoutAndSealVault();
-                        System.exit(0);  // Close the application
-                    }
-                } else {
-                    System.exit(0);  // Close the application if not logged in
-                }
+ // Set custom close operation with a confirmation prompt if logged in
+ addWindowListener(new java.awt.event.WindowAdapter() {
+    public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+        if (isUserLoggedIn()) {
+            int result = JOptionPane.showConfirmDialog(GUIBuilder.this,
+                    "You are currently logged in. Closing the application will log you out. Are you sure you want to close and logout?",
+                    "Confirm Logout", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (result == JOptionPane.YES_OPTION) {
+                // Log out and seal the vault
+                logoutAndSealVault();
+                System.exit(0);  // Close the application
             }
-        });
+
+            // If user selects "No", do nothing and stay on the current screen
+            if (result == JOptionPane.NO_OPTION) {
+                // No need to do anything, just stay on the current page
+                ((JFrame) windowEvent.getWindow()).setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+            }
+        } else {
+            System.exit(0);  // Close the application if not logged in
+        }
     }
+});
+}
 
     private boolean isUserLoggedIn() {
-        // Check if the user is logged in by verifying if the root password exists in the vault
-        return vault.getRootPasswordHash() != null && !vault.getRootPasswordHash().isEmpty();
-    }
+        return LoginPanel.isUserLoggedIn;}
 
     // Method to log out and seal the vault
     private void logoutAndSealVault() {
@@ -102,9 +106,6 @@ public class GUIBuilder extends JFrame {
         cardLayout.show(mainPanel, panelName);
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(GUIBuilder::new);
-    }
 
     public void showPopupMessage(String message) {
         JOptionPane.showMessageDialog(this, message, "Message", JOptionPane.INFORMATION_MESSAGE);
