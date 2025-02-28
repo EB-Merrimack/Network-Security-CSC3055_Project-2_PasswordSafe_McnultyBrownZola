@@ -120,7 +120,7 @@ public class LoginPanel extends JPanel {
 
     private String checkPasswordStrength(String password) {
         if (password.length() < 8) {
-            return "Too short!";
+            return "Too short! Password must be greater then 8 characters!";
         }
         if (!password.matches(".*[A-Z].*")) {
             return "Must contain an uppercase letter!";
