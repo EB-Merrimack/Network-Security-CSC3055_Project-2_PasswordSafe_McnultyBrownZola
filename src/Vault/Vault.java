@@ -273,7 +273,7 @@ public class Vault implements JSONSerializable {
     
                         return new String(decryptedPass);
                     } catch (Exception e) {
-                        System.err.println("❌ Error: Password Decryption Failed - " + e.getMessage());
+                        System.err.println("Error: Password Decryption Failed - " + e.getMessage());
                         return "Decryption error!";
                     }
                 }
