@@ -1,4 +1,4 @@
-package Vault;
+/*package Vault;
 
 import merrimackutil.json.JsonIO;
 import java.io.File;
@@ -33,4 +33,4 @@ public class VaultSealer {
             System.err.println("Error sealing vault: " + e.getMessage());
         }
     }
-}
+} */

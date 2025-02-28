@@ -106,6 +106,9 @@ public class LoginPanel extends JPanel {
     private void loginToVault() {
         String password = new String(passwordField.getPassword());
 
+        System.out.println("🔍 Debug: User entered password: " + password);
+
+
         if (vault.verifyRootPassword(password)) {
             JOptionPane.showMessageDialog(this, "Access granted.");
             parent.showPanel("Main");

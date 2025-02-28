@@ -3,7 +3,7 @@ package Gui;
 import javax.swing.*;
 import java.awt.*;
 import Vault.Vault;
-import Vault.VaultSealer;
+//import Vault.VaultSealer;
 import java.io.File;
 
 public class MainPanel extends JPanel {
@@ -47,7 +47,7 @@ public class MainPanel extends JPanel {
         // Create logout button and add action to it
         JButton logoutButton = new JButton("Logout");
         logoutButton.setPreferredSize(new Dimension(100, 30));
-        logoutButton.addActionListener(e -> logoutAndSealVault());
+        //logoutButton.addActionListener(e -> logoutAndSealVault());
 
         // Create a JPanel for logout button and add it to the top of the main panel
         JPanel logoutPanel = new JPanel();
@@ -60,7 +60,7 @@ public class MainPanel extends JPanel {
     }
 
     // Method to logout and seal the vault
-    private void logoutAndSealVault() {
+    /*private void logoutAndSealVault() {
         // Get the password entered in the password field (assuming it’s accessible here, adapt as necessary)
         String password = "yourPasswordHere";  // Replace with actual password retrieval logic
 
@@ -74,5 +74,5 @@ public class MainPanel extends JPanel {
         JOptionPane.showMessageDialog(this, "You have logged out and the vault has been sealed.");
         parent.showPanel("Login");  // Show login panel after logout
         LoginPanel.isUserLoggedIn = false;  // Update login status
-    }
+    }*/
 }
