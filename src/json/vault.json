@@ -1,13 +1,14 @@
 {
+   "salt" : "X64chlbGnkx6NKHx",
    "salt" : "fi1ezcfx/AJCwYcq",
    "privkeys" : [
    ],
    "passwords" : [
    ],
-   "rootPasswordHash" : "VEyYqo7KDrFvUl274JYLHkC78LJKsVY+qq0zSL6a+Uw=",
+   "rootPasswordHash" : "umgoG6xOhCqlSxlM2zAC9I9MxXrUOOTw6dSlg1UvBPE=",
    "vaultkey" : {
-      "iv" : "tvXKDD1LapqrE6n0",
-      "key" : "5oGWommxeDYrGiPfm8Y++o7qfeSCOj08CRQeYjrV/8Wg9JqpQfFelVwaBYKR1A8P"
+      "iv" : "odICm5BzytKRlnn0",
+      "key" : "hpvdX6c1U+B/JIKQ+ZTM+zWZ2ttjPtzkTKjmQub/7WGE/0seDkAUhhy/VDbRE90k"
    }
 }
 

@@ -206,6 +206,11 @@ public class Vault implements JSONSerializable {
     }
 
 
+    public byte[] getSalt() {
+        return this.salt.getBytes();
+    }
+
+
     public JSONArray getPasswords() {
        return this.passwords;     }
 
