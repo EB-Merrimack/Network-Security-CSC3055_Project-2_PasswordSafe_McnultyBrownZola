@@ -5,6 +5,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.security.*;
+import java.util.Base64;
 
 public class VaultEncryption {
     static {
@@ -52,4 +53,21 @@ public class VaultEncryption {
         cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec);
         return cipher.doFinal(ciphertext);
     }
+    public static SecretKey getVaultKey(Vault vault, SecretKey rootKey) throws Exception {
+        if (vault.getVaultKeyValue().isEmpty() || vault.getVaultKeyIV().isEmpty()) {
+            throw new IllegalStateException("Vault key or IV is missing.");
+        }
+    
+        byte[] encryptedVaultKey = Base64.getDecoder().decode(vault.getVaultKeyValue());
+        byte[] iv = Base64.getDecoder().decode(vault.getVaultKeyIV());
+    
+        byte[] decryptedVaultKey = decryptAESGCM(encryptedVaultKey, rootKey, iv);
+    
+        if (decryptedVaultKey.length != 32) {
+            throw new SecurityException("Invalid vault key length.");
+        }
+    
+        return new SecretKeySpec(decryptedVaultKey, "AES");
+    }
+    
 }

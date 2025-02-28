@@ -204,4 +204,9 @@ public class Vault implements JSONSerializable {
         System.out.println("Creating a new vault...");
         return new Vault();
     }
+
+
+    public byte[] getSalt() {
+        return this.salt.getBytes();
+    }
 }
