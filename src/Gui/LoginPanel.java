@@ -12,6 +12,7 @@ public class LoginPanel extends JPanel {
     private JPasswordField confirmPasswordField;
     private JButton actionButton;
     private JLabel messageLabel;
+    private JLabel confirmPasswordLabel;  // Declare confirmPasswordLabel here
 
     public LoginPanel(GUIBuilder parent, Vault vault) {
         this.vault = vault;
@@ -24,12 +25,14 @@ public class LoginPanel extends JPanel {
         JLabel passwordLabel = new JLabel("Enter Vault Password:");
         passwordField = new JPasswordField(15);
 
-        JLabel confirmPasswordLabel = new JLabel("Confirm Password:");
+        confirmPasswordLabel = new JLabel("Confirm Password:");  // Initialize confirmPasswordLabel
+        confirmPasswordLabel.setVisible(false);
         confirmPasswordField = new JPasswordField(15);
         confirmPasswordField.setVisible(false); // Hidden unless needed
 
         actionButton = new JButton("Unlock Vault");
         messageLabel = new JLabel("", SwingConstants.CENTER);
+        messageLabel.setVisible(false); // Initially hidden
 
         // Position elements in grid
         gbc.gridx = 0;
@@ -66,6 +69,7 @@ public class LoginPanel extends JPanel {
     private void setupInitializationMode() {
         actionButton.setText("Initialize Vault");
         confirmPasswordField.setVisible(true);
+        confirmPasswordLabel.setVisible(true);
 
         actionButton.addActionListener(e -> initializeVault());
     }
@@ -82,13 +86,13 @@ public class LoginPanel extends JPanel {
         String confirmPassword = new String(confirmPasswordField.getPassword());
 
         if (!password.equals(confirmPassword)) {
-            messageLabel.setText("Passwords do not match! Try again.");
+            showMessage("Passwords do not match! Try again.");
             return;
         }
 
         String passwordStrength = checkPasswordStrength(password);
         if (!passwordStrength.equals("Strong")) {
-            messageLabel.setText("Weak password! " + passwordStrength);
+            showMessage("Weak password! " + passwordStrength);
             return;
         }
 
@@ -105,13 +109,18 @@ public class LoginPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Access granted.");
             parent.showPanel("Main");
         } else {
-            messageLabel.setText("Incorrect password! Try again.");
+            showMessage("Incorrect password! Try again.");
         }
+    }
+
+    private void showMessage(String message) {
+        messageLabel.setText(message);
+        messageLabel.setVisible(true);
     }
 
     private String checkPasswordStrength(String password) {
         if (password.length() < 8) {
-            return "Too short!";
+            return "Too short! Password must be greater then 8 characters!";
         }
         if (!password.matches(".*[A-Z].*")) {
             return "Must contain an uppercase letter!";

@@ -46,7 +46,7 @@ public class GUIBuilder extends JFrame{
         }
 
         // ✅ Add login & main menu panels
-        mainPanel.add(new LoginPanel(this, vault), "Login");
+       mainPanel.add(new LoginPanel(this, vault), "Login");
         mainPanel.add(new MainPanel(this, vault), "Main");
         
         add(mainPanel);
