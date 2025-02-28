@@ -1,4 +1,4 @@
-package Vault;
+/*package Vault;
 
 import merrimackutil.json.JsonIO;
 import merrimackutil.json.parser.JSONParser;
@@ -52,4 +52,4 @@ public class VaultUnsealer {
             return null;
         }
     }
-}
+} */

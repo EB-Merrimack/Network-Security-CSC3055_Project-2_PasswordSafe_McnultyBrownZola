@@ -2,7 +2,7 @@ package Gui;
 
 import javax.swing.*;
 import Vault.Vault;
-import Vault.VaultSealer;
+//import Vault.VaultSealer;
 import merrimackutil.json.JsonIO;
 import merrimackutil.json.types.JSONObject;
 
@@ -14,6 +14,8 @@ public class GUIBuilder extends JFrame {
     private JPanel mainPanel;
     private Vault vault;
     private static final String VAULT_FILE = "src/json/vault.json";
+    private String userPassword;
+
 
     public GUIBuilder() {
         setTitle("Secrets Vault");
@@ -51,7 +53,7 @@ public class GUIBuilder extends JFrame {
         cardLayout.show(mainPanel, "Login");
 
  // Set custom close operation with a confirmation prompt if logged in
- addWindowListener(new java.awt.event.WindowAdapter() {
+ /*addWindowListener(new java.awt.event.WindowAdapter() {
     public void windowClosing(java.awt.event.WindowEvent windowEvent) {
         if (isUserLoggedIn()) {
             int result = JOptionPane.showConfirmDialog(GUIBuilder.this,
@@ -72,21 +74,21 @@ public class GUIBuilder extends JFrame {
             System.exit(0);  // Close the application if not logged in
         }
     }
-});
+});*/
 }
 
     private boolean isUserLoggedIn() {
         return LoginPanel.isUserLoggedIn;}
 
     // Method to log out and seal the vault
-    private void logoutAndSealVault() {
+    /*private void logoutAndSealVault() {
         // Here, you can add the logic to seal the vault if necessary
         // For example:
         String password = "yourPasswordHere";  // Replace with actual password retrieval logic
         File vaultFile = new File(VAULT_FILE);
         VaultSealer.sealVault(vault, vaultFile, password);  // Pass the File object and password
         System.out.println("Vault has been sealed.");
-    }
+    }*/
 
     public void saveVault() {
         try {
@@ -109,5 +111,18 @@ public class GUIBuilder extends JFrame {
 
     public void showPopupMessage(String message) {
         JOptionPane.showMessageDialog(this, message, "Message", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public Vault getVault() {
+        return this.vault;
+    }
+
+    public void setUserPassword(String password) {
+        this.userPassword = password;
+        System.out.println("✅ Debug: User Password Stored in GUIBuilder: " + password);
+    }
+    
+    public String getUserPassword() {
+        return this.userPassword;
     }
 }

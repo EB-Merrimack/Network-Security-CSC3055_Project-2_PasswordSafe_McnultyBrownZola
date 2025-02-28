@@ -41,41 +41,59 @@ public class Vault implements JSONSerializable {
 
     // ✅ Set Root Password (Hash & Save)
     public void setRootPassword(String password) {
-    this.rootPasswordHash = hashPassword(password);
-
-    // ✅ Generate and store a salt if missing
-    if (this.salt == null || this.salt.isEmpty()) {
-        byte[] saltBytes = VaultEncryption.generateRandomIV();
-        this.salt = Base64.getEncoder().encodeToString(saltBytes);
+        System.out.println("🔍 Debug: Storing Vault Password: " + password);
+        
+        this.rootPasswordHash = hashPassword(password);
+    
+        if (this.salt == null || this.salt.isEmpty()) {
+            byte[] saltBytes = VaultEncryption.generateRandomIV();
+            this.salt = Base64.getEncoder().encodeToString(saltBytes);
+            System.out.println("✅ Debug: Generated New Salt: " + this.salt);
+        } else {
+            System.out.println("✅ Debug: Using Existing Salt: " + this.salt);
+        }
+    
+        byte[] iv = VaultEncryption.generateRandomIV();
+        this.vaultKeyIV = Base64.getEncoder().encodeToString(iv);
+    
+        try {
+            byte[] vaultKey = VaultEncryption.generateRandomKey();
+            SecretKey rootKey = VaultEncryption.deriveRootKey(password, Base64.getDecoder().decode(this.salt));
+            byte[] encryptedVaultKey = VaultEncryption.encryptAESGCM(vaultKey, rootKey, iv);
+    
+            this.vaultKeyValue = Base64.getEncoder().encodeToString(encryptedVaultKey);
+            System.out.println("✅ Debug: Vault Key Generated and Encrypted Successfully!");
+    
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-
-    // ✅ Generate random IV for encryption
-    byte[] iv = VaultEncryption.generateRandomIV();
-    this.vaultKeyIV = Base64.getEncoder().encodeToString(iv);
-
-    try {
-        // ✅ Generate a new vault key and encrypt it
-        byte[] vaultKey = VaultEncryption.generateRandomKey();
-        SecretKey rootKey = VaultEncryption.deriveRootKey(password, Base64.getDecoder().decode(this.salt));
-        byte[] encryptedVaultKey = VaultEncryption.encryptAESGCM(vaultKey, rootKey, iv);
-
-        this.vaultKeyValue = Base64.getEncoder().encodeToString(encryptedVaultKey);
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
 
     // ✅ Verify Password
     public boolean verifyRootPassword(String password) {
         try {
+            System.out.println("🔍 Debug: Verifying Root Password...");
+            System.out.println("🔍 Debug: Stored Salt (Base64): " + this.salt);
+    
+            // Derive Root Key
             SecretKey rootKey = VaultEncryption.deriveRootKey(password, Base64.getDecoder().decode(this.salt));
-            byte[] decryptedVaultKey = VaultEncryption.decryptAESGCM(
-                Base64.getDecoder().decode(this.vaultKeyValue), rootKey, Base64.getDecoder().decode(this.vaultKeyIV)
-            );
+            System.out.println("✅ Debug: Derived Root Key (Base64): " + Base64.getEncoder().encodeToString(rootKey.getEncoded()));
+    
+            // Decrypt Vault Key
+            byte[] encryptedVaultKey = Base64.getDecoder().decode(this.vaultKeyValue);
+            byte[] iv = Base64.getDecoder().decode(this.vaultKeyIV);
+    
+            System.out.println("🔍 Debug: Encrypted Vault Key (Base64): " + this.vaultKeyValue);
+            System.out.println("🔍 Debug: Vault Key IV (Base64): " + this.vaultKeyIV);
+    
+            byte[] decryptedVaultKey = VaultEncryption.decryptAESGCM(encryptedVaultKey, rootKey, iv);
+    
+            System.out.println("✅ Debug: Vault Key Decryption Successful! Length: " + decryptedVaultKey.length);
     
             return decryptedVaultKey.length == 32; // ✅ Check if decryption was successful
         } catch (Exception e) {
-            return false; //  If decryption fails, the password is incorrect
+            System.err.println("❌ Error: Vault Key Decryption Failed - " + e.getMessage());
+            return false; // If decryption fails, the password is incorrect
         }
     }
 
@@ -123,12 +141,28 @@ public class Vault implements JSONSerializable {
         }
         JSONObject json = (JSONObject) jsonType;
 
-        this.salt = json.containsKey("salt") ? json.getString("salt") : null;
+        if (json.containsKey("salt")) {
+            Object saltObj = json.get("salt");
+            if (saltObj instanceof String) {
+                this.salt = (String) saltObj;
+            } else if (saltObj instanceof byte[]) {
+                // Convert byte array to Base64 string if necessary
+                this.salt = Base64.getEncoder().encodeToString((byte[]) saltObj);
+            } else {
+                // Fallback: force to string
+                this.salt = saltObj.toString();
+            }
+            System.out.println("✅ Debug: Loaded Salt from JSON: " + this.salt);
+        } else {
+            System.out.println("⚠ Warning: No salt found in JSON.");
+            this.salt = "";
+        }
     
-    // ✅ If salt is missing, generate a new one
-    if (this.salt == null || this.salt.isEmpty()) {
-        generateSalt();
-    }
+        // If salt is still empty, generate a new one and assign it!
+        if (this.salt == null || this.salt.isEmpty()) {
+            this.salt = generateSalt();
+            System.out.println("✅ Debug: Generated New Salt in deserialize: " + this.salt);
+        }
 
         this.rootPasswordHash = json.getString("rootPasswordHash");
         JSONObject vaultKeyJSON = json.getObject("vaultkey");
@@ -217,5 +251,34 @@ public class Vault implements JSONSerializable {
 
     public JSONArray getPrivateKeys() {
         return this.privKeys;
+    }
+
+    public String getDecryptedPassword(String service, String user, SecretKey vaultKey) {
+        for (Object obj : passwords) {
+            if (obj instanceof JSONObject) {  // Ensure it's a JSON object
+                JSONObject passEntry = (JSONObject) obj;
+    
+                if (passEntry.getString("service").equals(service) && passEntry.getString("user").equals(user)) {
+                    try {
+                        byte[] encryptedPass = Base64.getDecoder().decode(passEntry.getString("pass"));
+                        byte[] iv = Base64.getDecoder().decode(passEntry.getString("iv"));
+    
+                        System.out.println("🔍 Debug: Found Encrypted Password Entry!");
+                        System.out.println("🔍 Debug: Encrypted Password (Base64): " + passEntry.getString("pass"));
+                        System.out.println("🔍 Debug: IV (Base64): " + passEntry.getString("iv"));
+    
+                        // Decrypt password
+                        byte[] decryptedPass = VaultEncryption.decryptAESGCM(encryptedPass, vaultKey, iv);
+                        System.out.println("✅ Debug: Decryption Successful! Password: " + new String(decryptedPass));
+    
+                        return new String(decryptedPass);
+                    } catch (Exception e) {
+                        System.err.println("Error: Password Decryption Failed - " + e.getMessage());
+                        return "Decryption error!";
+                    }
+                }
+            }
+        }
+        return "Not found";
     }
 }
