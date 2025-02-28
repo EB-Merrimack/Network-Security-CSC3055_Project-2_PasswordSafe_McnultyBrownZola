@@ -14,6 +14,7 @@ public class LoginPanel extends JPanel {
     private JLabel messageLabel;
     private JLabel confirmPasswordLabel;  // Declare confirmPasswordLabel here
     public static boolean isUserLoggedIn = false;
+
     public LoginPanel(GUIBuilder parent, Vault vault) {
         this.vault = vault;
         this.parent = parent;
@@ -25,7 +26,7 @@ public class LoginPanel extends JPanel {
         JLabel passwordLabel = new JLabel("Enter Vault Password:");
         passwordField = new JPasswordField(15);
 
-        confirmPasswordLabel = new JLabel("Confirm Password:");  // Initialize confirmPasswordLabel
+        confirmPasswordLabel = new JLabel("Confirm Password:");
         confirmPasswordLabel.setVisible(false);
         confirmPasswordField = new JPasswordField(15);
         confirmPasswordField.setVisible(false); // Hidden unless needed
@@ -96,6 +97,10 @@ public class LoginPanel extends JPanel {
             return;
         }
 
+        // Store the password in GUIBuilder for later retrieval
+        parent.setUserPassword(password);
+        System.out.println("✅ Debug: Stored Password in GUIBuilder: " + password);
+
         vault.setRootPassword(password);
         parent.saveVault();
         isUserLoggedIn = true;
@@ -108,6 +113,9 @@ public class LoginPanel extends JPanel {
 
         System.out.println("🔍 Debug: User entered password: " + password);
 
+        // Store the password in GUIBuilder so it can be used later
+        parent.setUserPassword(password);
+        System.out.println("✅ Debug: Stored User Password in GUIBuilder: " + password);
 
         if (vault.verifyRootPassword(password)) {
             JOptionPane.showMessageDialog(this, "Access granted.");
@@ -125,7 +133,7 @@ public class LoginPanel extends JPanel {
 
     private String checkPasswordStrength(String password) {
         if (password.length() < 8) {
-            return "Too short! Password must be greater then 8 characters!";
+            return "Too short! Password must be greater than 8 characters!";
         }
         if (!password.matches(".*[A-Z].*")) {
             return "Must contain an uppercase letter!";
