@@ -33,8 +33,4 @@ public class VaultSealer {
             System.err.println("Error sealing vault: " + e.getMessage());
         }
     }
-<<<<<<< Updated upstream
 }
-=======
-} 
->>>>>>> Stashed changes
