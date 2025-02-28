@@ -209,4 +209,51 @@ public class Vault implements JSONSerializable {
     public byte[] getSalt() {
         return this.salt.getBytes();
     }
+<<<<<<< Updated upstream
+=======
+
+
+    public JSONArray getPasswords() {
+       return this.passwords;     }
+
+
+    public JSONArray getPrivateKeys() {
+        return this.privKeys;
+    }
+
+    public String getDecryptedPassword(String service, String user, SecretKey vaultKey) {
+        for (Object obj : passwords) {
+            if (obj instanceof JSONObject) {  // Ensure it's a JSON object
+                JSONObject passEntry = (JSONObject) obj;
+    
+                if (passEntry.getString("service").equals(service) && passEntry.getString("user").equals(user)) {
+                    try {
+                        byte[] encryptedPass = Base64.getDecoder().decode(passEntry.getString("pass"));
+                        byte[] iv = Base64.getDecoder().decode(passEntry.getString("iv"));
+    
+                        System.out.println("🔍 Debug: Found Encrypted Password Entry!");
+                        System.out.println("🔍 Debug: Encrypted Password (Base64): " + passEntry.getString("pass"));
+                        System.out.println("🔍 Debug: IV (Base64): " + passEntry.getString("iv"));
+    
+                        // Decrypt password
+                        byte[] decryptedPass = VaultEncryption.decryptAESGCM(encryptedPass, vaultKey, iv);
+                        System.out.println("✅ Debug: Decryption Successful! Password: " + new String(decryptedPass));
+    
+                        return new String(decryptedPass);
+                    } catch (Exception e) {
+                        System.err.println("Error: Password Decryption Failed - " + e.getMessage());
+                        return "Decryption error!";
+                    }
+                }
+            }
+        }
+        return "Not found";
+    }
+
+
+    public static void sealVault() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'sealVault'");
+    }
+>>>>>>> Stashed changes
 }

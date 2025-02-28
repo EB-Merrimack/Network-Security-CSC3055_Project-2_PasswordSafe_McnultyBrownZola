@@ -61,14 +61,9 @@ public class MainPanel extends JPanel {
 
     // Method to logout and seal the vault
     private void logoutAndSealVault() {
-        // Get the password entered in the password field (assuming it’s accessible here, adapt as necessary)
-        String password = "yourPasswordHere";  // Replace with actual password retrieval logic
-
-        // Create a File object for the vault.json file
-        File vaultFile = new File("vault.json");
-
+   
         // Seal the vault with the password and file
-        VaultSealer.sealVault(vault, vaultFile, password);  // Pass the File object and password
+        Vault.sealVault();  // Pass the File object and password
 
         // Show a message and return to login panel
         JOptionPane.showMessageDialog(this, "You have logged out and the vault has been sealed.");

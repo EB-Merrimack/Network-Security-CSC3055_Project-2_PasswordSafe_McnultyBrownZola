@@ -3,6 +3,7 @@ package Gui;
 import javax.swing.*;
 import Vault.Vault;
 import Vault.VaultSealer;
+//import Vault.VaultSealer;
 import merrimackutil.json.JsonIO;
 import merrimackutil.json.types.JSONObject;
 
@@ -77,16 +78,13 @@ public class GUIBuilder extends JFrame {
 
     private boolean isUserLoggedIn() {
         return LoginPanel.isUserLoggedIn;}
-
-    // Method to log out and seal the vault
-    private void logoutAndSealVault() {
-        // Here, you can add the logic to seal the vault if necessary
-        // For example:
-        String password = "yourPasswordHere";  // Replace with actual password retrieval logic
-        File vaultFile = new File(VAULT_FILE);
-        VaultSealer.sealVault(vault, vaultFile, password);  // Pass the File object and password
-        System.out.println("Vault has been sealed.");
-    }
+  // Method to log out and seal the vault
+  private void logoutAndSealVault() {
+       // Call the sealVault method
+       Vault.sealVault(); // Pass the File object and password
+    System.out.println("Vault has been sealed.");
+}
+  
 
     public void saveVault() {
         try {
