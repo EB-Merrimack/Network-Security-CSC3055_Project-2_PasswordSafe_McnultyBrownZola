@@ -24,8 +24,6 @@ public class VaultSealer {
             SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
             byte[] encryptedVaultData = VaultEncryption.encryptAESGCM(vaultData, vaultKey, iv);
 
-            // Store encrypted vault JSON in Vault object
-            vault.setVaultKey(ivBase64, Base64.getEncoder().encodeToString(encryptedVaultData));
 
             // Save the encrypted vault to a file
             JsonIO.writeSerializedObject(vault, file);
