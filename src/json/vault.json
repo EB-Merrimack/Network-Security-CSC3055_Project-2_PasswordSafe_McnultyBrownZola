@@ -8,6 +8,12 @@
          "service" : "git",
          "iv" : "To+xhQ3cwlLhvtEu",
          "user" : "test"
+      },
+      {
+         "pass" : "f+jA6tCtZPw5z7hxXGv25lnkeXHe7S//oujEqYUg2Ao=",
+         "service" : "test",
+         "iv" : "aTeqzo0qMJo0Q6XF",
+         "user" : "test"
       }
    ],
    "rootPasswordHash" : "umgoG6xOhCqlSxlM2zAC9I9MxXrUOOTw6dSlg1UvBPE=",
