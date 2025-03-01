@@ -1,10 +1,14 @@
 package Gui;
 
+import javax.crypto.SecretKey;
 import javax.swing.*;
 import java.awt.*;
 import Vault.Vault;
+import Vault.VaultEncryption;
+
 //import Vault.VaultSealer;
 import java.io.File;
+import java.util.Base64;
 
 public class MainPanel extends JPanel {
     private Vault vault;
@@ -60,19 +64,11 @@ public class MainPanel extends JPanel {
     }
 
     // Method to logout and seal the vault
-    /*private void logoutAndSealVault() {
-        // Get the password entered in the password field (assuming it’s accessible here, adapt as necessary)
-        String password = "yourPasswordHere";  // Replace with actual password retrieval logic
+    private void logoutAndSealVault() {
+        
+        // Call the sealVault method from the Vault class
+        Vault vault2 = new Vault();
+        vault2.sealVault();
 
-        // Create a File object for the vault.json file
-        File vaultFile = new File("vault.json");
-
-        // Seal the vault with the password and file
-        VaultSealer.sealVault(vault, vaultFile, password);  // Pass the File object and password
-
-        // Show a message and return to login panel
-        JOptionPane.showMessageDialog(this, "You have logged out and the vault has been sealed.");
-        parent.showPanel("Login");  // Show login panel after logout
-        LoginPanel.isUserLoggedIn = false;  // Update login status
-    }*/
+    }
 }
