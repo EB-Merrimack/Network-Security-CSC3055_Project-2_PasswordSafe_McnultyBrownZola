@@ -2,6 +2,10 @@ package Vault;
 
 import org.bouncycastle.crypto.generators.SCrypt;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+import merrimackutil.json.types.JSONArray;
+import merrimackutil.json.types.JSONObject;
+
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.security.*;
@@ -96,4 +100,38 @@ public class VaultEncryption {
             throw new SecurityException("Vault Key Decryption Failed", e);
         }
     }
+
+   public static JSONArray encryptJSONArray(JSONArray jsonArray, SecretKey vaultSecretKey) {
+    JSONArray encryptedArray = new JSONArray();
+
+    try {
+        // Iterate over each entry in the JSONArray
+        for (Object obj : jsonArray) {
+            if (obj instanceof JSONObject) {  // Ensure we are processing a JSONObject
+                JSONObject jsonEntry = (JSONObject) obj;
+
+                // Generate a unique IV for each encryption (could also be random)
+                byte[] iv = VaultEncryption.generateRandomIV();  // VaultEncryption.generateRandomIV() will generate a random 12-byte IV for GCM
+
+                // Encrypt each value (specifically the "pass" or "privkey" field in this case)
+                String dataToEncrypt = jsonEntry.getString("pass");  // Or you could use "privkey" depending on the entry type
+                byte[] encryptedData = VaultEncryption.encryptAESGCM(dataToEncrypt.getBytes(), vaultSecretKey, iv);
+
+                // Create a new JSONObject to store the encrypted data
+                JSONObject encryptedEntry = new JSONObject();
+                encryptedEntry.put("iv", Base64.getEncoder().encodeToString(iv));  // Store the IV in Base64
+                encryptedEntry.put("encrypted_data", Base64.getEncoder().encodeToString(encryptedData));  // Store the encrypted data in Base64
+                encryptedArray.add(encryptedEntry);  // Add this encrypted entry to the new array
+            }
+        }
+
+    } catch (Exception e) {
+        System.err.println("Error encrypting JSONArray: " + e.getMessage());
+    }
+
+    return encryptedArray;
+}
+
+
+
 }

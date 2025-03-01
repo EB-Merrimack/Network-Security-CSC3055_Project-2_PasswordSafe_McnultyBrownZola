@@ -13,6 +13,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
+import Gui.GUIBuilder;
 
 
 public class Vault implements JSONSerializable {
@@ -281,4 +284,77 @@ public class Vault implements JSONSerializable {
         }
         return "Not found";
     }
-}
+    public void sealVault() {
+        try {
+            
+                   // Retrieve the stored user password from GUIBuilder
+        String rootPassword = GUIBuilder.getUserPassword();
+
+      
+                        // 🔹 Retrieve the correct root key and vault key
+                        SecretKey rootKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(salt));
+                        System.out.println("🔍 Debug: Root key successfully retrieved.");
+                        // Get the vault key using the derived root key
+                        SecretKey vaultKey = VaultEncryption.getVaultKey(this, rootKey);  // ✅ Use the stored vault key
+                        System.out.println("🔍 Debug: Vault key successfully retrieved using root key.");
+                
+                        // Debug: Show vault key and IV initialization
+                        if (vaultKey == null) {
+                            throw new IllegalStateException("Vault key is not initialized properly.");
+                        }
+                
+                       // When encoding strings to Base64, first convert the string to bytes
+                       String vaultKeyBase64 = Base64.getEncoder().encodeToString(vaultKey.getEncoded());
+                       System.out.println("🔍 Debug: Vault Key (Base64): " + vaultKeyBase64);
+                       
+                       String vaultKeyIVBase64 = Base64.getEncoder().encodeToString(this.getVaultKeyIV().getBytes());
+                       System.out.println("🔍 Debug: Vault IV (Base64): " + vaultKeyIVBase64);
+                       
+
+                        // Step 2: Generate SecretKey for AES encryption using the vault key bytes
+                        SecretKey vaultSecretKey = new SecretKeySpec(vaultKey.getEncoded(), "AES");
+                        System.out.println("🔍 Debug: Vault Secret Key Generated.");
+                
+                        // Encrypt the in-memory vault data (e.g., passwords and private keys)
+                        JSONArray encryptedPasswords = VaultEncryption.encryptJSONArray(this.passwords, vaultSecretKey);
+                        JSONArray encryptedPrivKeys = VaultEncryption.encryptJSONArray(this.privKeys, vaultSecretKey);
+                        System.out.println("🔍 Debug: In-memory data encrypted.");
+                
+                        // Step 3: Encrypt the vault key using the root key
+                        System.out.println("🔍 Debug: Encrypting the vault key using the root key...");
+                
+                        byte[] vaultKeyIV = Base64.getDecoder().decode(this.getVaultKeyIV());  // Using the correct IV
+                        byte[] encryptedVaultKey = VaultEncryption.encryptAESGCM(vaultKey.getEncoded(), rootKey, vaultKeyIV);
+                        System.out.println("🔍 Debug: Vault key encrypted with root key.");
+                
+                        // Step 4: Create JSON structure for the sealed vault
+                        JSONObject json = new JSONObject();
+                        JSONObject jsonObject = new JSONObject();
+                        json.put("salt", this.getSalt());
+                
+                        JSONObject vaultKeyJSON = new JSONObject();
+                        vaultKeyJSON.put("iv", this.getVaultKeyIV());  // Get the correct IV from the vault
+                        vaultKeyJSON.put("key", Base64.getEncoder().encodeToString(encryptedVaultKey));
+                        json.put("vaultkey", vaultKeyJSON);
+                
+                        json.put("passwords", encryptedPasswords);
+                        json.put("privkeys", encryptedPrivKeys);
+                        System.out.println("🔍 Debug: JSON structure created.");
+                
+                        // Step 5: Write the sealed vault to vault.json
+                        JsonIO.writeSerializedObject(this, new File("vault.json"));
+                        System.out.println("✅ Vault sealed successfully!");
+                
+                    } catch (Exception e) {
+                        System.err.println("❌ Error sealing vault: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                }
+            
+            
+              
+    
+    
+    }
+
+    
