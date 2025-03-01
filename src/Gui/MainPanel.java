@@ -3,7 +3,6 @@ package Gui;
 import javax.swing.*;
 import java.awt.*;
 import Vault.Vault;
-import Vault.VaultSealer;
 import java.io.File;
 
 public class MainPanel extends JPanel {
@@ -62,8 +61,9 @@ public class MainPanel extends JPanel {
     // Method to logout and seal the vault
     private void logoutAndSealVault() {
    
+        Vault vault2 = new Vault();
         // Seal the vault with the password and file
-        Vault.sealVault();  // Pass the File object and password
+        vault2.sealVault();  // Pass the File object and password
 
         // Show a message and return to login panel
         JOptionPane.showMessageDialog(this, "You have logged out and the vault has been sealed.");

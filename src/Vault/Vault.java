@@ -13,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 
 public class Vault implements JSONSerializable {
@@ -283,8 +284,56 @@ public class Vault implements JSONSerializable {
     }
 
 
-    public static void sealVault() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'sealVault'");
+    public void sealVault() {
+    try {
+        // 🏞️ Decrypt the Vault Key using the existing vault key
+        byte[] encryptedVaultKey = Base64.getDecoder().decode(this.vaultKeyValue);
+        byte[] iv = Base64.getDecoder().decode(this.vaultKeyIV);
+
+        // 🔍 Debug: Decrypting Vault Key
+        System.out.println("🔍 Debug: Decrypting Vault Key...");
+        byte[] decryptedVaultKey = VaultEncryption.decryptAESGCM(encryptedVaultKey, VaultEncryption.convertBytesToKey(Base64.getDecoder().decode(this.vaultKeyValue)), iv);
+
+        System.out.println("✅ Debug: Vault Key Decryption Successful! Length: " + decryptedVaultKey.length);
+
+        // Use the decrypted vault key for encryption
+        SecretKey decryptedVaultSecretKey = new SecretKeySpec(decryptedVaultKey, "AES");
+
+        // 🏞️ Encrypt in-memory vault data (passwords, privkeys, etc.) using the decrypted vault key
+        JSONArray encryptedPasswords = VaultEncryption.encryptJSONArray(this.passwords, decryptedVaultSecretKey);
+        JSONArray encryptedPrivKeys = VaultEncryption.encryptJSONArray(this.privKeys, decryptedVaultSecretKey);
+
+        // 🏷️ Create the vault key object containing the IV and the encrypted key (already existing)
+        JSONObject vaultKeyJSON = new JSONObject();
+        vaultKeyJSON.put("iv", this.vaultKeyIV);    // Add the IV to the JSON
+        vaultKeyJSON.put("key", this.vaultKeyValue);  // Add the existing encrypted vault key to the JSON
+
+        // Prepare JSON object to hold vault's information
+        JSONObject json = new JSONObject();
+        json.put("salt", this.salt);
+        json.put("vaultkey", vaultKeyJSON);
+        json.put("passwords", encryptedPasswords);
+        json.put("privkeys", encryptedPrivKeys);
+
+        // Set the final vault data in the current instance (because it needs to be serializable)
+        this.salt = json.getString("salt");
+        this.vaultKeyIV = vaultKeyJSON.getString("iv");
+        this.vaultKeyValue = vaultKeyJSON.getString("key");
+        this.passwords = encryptedPasswords;
+        this.privKeys = encryptedPrivKeys;
+
+        // 📁 Write the Vault object itself to `vault.json`
+        JsonIO.writeSerializedObject(this, new File("vault.json"));
+        System.out.println("✅ Vault successfully sealed!");
+
+    } catch (Exception e) {
+        System.err.println("❌ Error sealing vault: " + e.getMessage());
+        e.printStackTrace();
     }
 }
+
+    }
+    
+    
+    
+    

@@ -2,6 +2,10 @@ package Vault;
 
 import org.bouncycastle.crypto.generators.SCrypt;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+import merrimackutil.json.types.JSONArray;
+import merrimackutil.json.types.JSONObject;
+
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.security.*;
@@ -76,4 +80,55 @@ public class VaultEncryption {
     
         return new SecretKeySpec(decryptedVaultKey, "AES");
     }
+
+
+
+  public static JSONArray encryptJSONArray(JSONArray data, SecretKey vaultKey) {
+    JSONArray encryptedData = new JSONArray();
+
+    try {
+        // Generate a random IV for AES-GCM
+        byte[] iv = new byte[12];  // AES-GCM requires a 12-byte IV
+        new java.security.SecureRandom().nextBytes(iv);
+
+        // Prepare AES-GCM cipher
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        GCMParameterSpec spec = new GCMParameterSpec(128, iv);  // 128-bit authentication tag
+        cipher.init(Cipher.ENCRYPT_MODE, vaultKey, spec);
+
+        // Encrypt each element in the array
+        for (Object obj : data) {
+            if (obj instanceof String) {
+                String str = (String) obj;
+                byte[] encryptedBytes = cipher.doFinal(str.getBytes());
+                String encryptedBase64 = Base64.getEncoder().encodeToString(encryptedBytes);
+                encryptedData.add(encryptedBase64);
+            } else if (obj instanceof JSONObject) {
+                // If the element is a JSON object, you can recursively encrypt fields or serialize the object
+                String jsonString = obj.toString(); // Convert to JSON string
+                byte[] encryptedBytes = cipher.doFinal(jsonString.getBytes());
+                String encryptedBase64 = Base64.getEncoder().encodeToString(encryptedBytes);
+                encryptedData.add(encryptedBase64);
+            } else {
+                // Handle other types if needed
+                encryptedData.add(obj); // Add non-encrypted data as-is
+            }
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    
+    return encryptedData;
+}
+
+public static SecretKey convertBytesToKey(byte[] keyBytes) {
+    // Ensure the key length is valid for AES (typically 16, 24, or 32 bytes for AES-128, AES-192, or AES-256)
+    if (keyBytes.length != 32) {
+        throw new IllegalArgumentException("Invalid key length. Expected 32 bytes for AES-256.");
+    }
+
+    // Create and return a SecretKeySpec from the byte array
+    return new SecretKeySpec(keyBytes, "AES");
+}
 }
