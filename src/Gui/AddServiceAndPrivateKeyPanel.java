@@ -38,52 +38,58 @@ public class AddServiceAndPrivateKeyPanel extends JPanel {
 
     private void saveServiceAndPrivateKey() {
         String serviceName = serviceNameField.getText().trim();
-
+    
         if (serviceName.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please enter a service name!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
+    
         // Retrieve the stored user password from GUIBuilder
         String rootPassword = guiBuilder.getUserPassword();
         if (rootPassword == null || rootPassword.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Error: No stored password. Please restart and log in again.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
+    
         // Verify the root password
         if (!vault.verifyRootPassword(rootPassword)) {
             JOptionPane.showMessageDialog(this, "Incorrect root password!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-
+    
         try {
-            // Generate a new random private key (32 bytes long, Base64 encoded)
+            // ✅ Generate a new random private key (32 bytes long, Base64 encoded)
             byte[] privateKeyBytes = new byte[32];
             new SecureRandom().nextBytes(privateKeyBytes);
             String privateKey = Base64.getEncoder().encodeToString(privateKeyBytes);
-            System.out.println("✅ Debug: Generated Private Key: " + privateKey);
-
-            // Derive the correct vault key
+    
+            // 🔍 Debug: Print the generated private key BEFORE encryption
+            System.out.println("✅ Debug: Generated Private Key (Before Encryption): " + privateKey);
+    
+            // ✅ Derive the correct vault key
             SecretKey rootKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.getSalt()));
             SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
-
-            // Generate IV for encryption
+    
+            // 🔍 Debug: Print the vault key used for encryption
+            System.out.println("🔐 Debug: Vault Key Used for Encryption: " + Base64.getEncoder().encodeToString(vaultKey.getEncoded()));
+    
+            // ✅ Generate IV for encryption
             byte[] iv = VaultEncryption.generateRandomIV();
             String encodedIV = Base64.getEncoder().encodeToString(iv);
-
-            // Encrypt the private key using the vault key
+    
+            // ✅ Encrypt the private key using AES-GCM
             byte[] encryptedPrivKeyBytes = VaultEncryption.encryptAESGCM(privateKey.getBytes(), vaultKey, iv);
             String encryptedPrivKey = Base64.getEncoder().encodeToString(encryptedPrivKeyBytes);
-
-            System.out.println("✅ Debug: Private Key Encrypted Successfully!");
-
-            // Store the encrypted private key in the vault
+    
+            // 🔍 Debug: Print the encrypted private key BEFORE storing it
+            System.out.println("🔒 Debug: Encrypted Private Key (Base64 Stored in Vault): " + encryptedPrivKey);
+    
+            // ✅ Store the encrypted private key in the vault
             vault.addPrivateKey(serviceName, encryptedPrivKey, encodedIV);
             guiBuilder.saveVault();
-
+    
             JOptionPane.showMessageDialog(this, "Service and private key added successfully!");
-
+    
         } catch (Exception e) {
             System.err.println("❌ Error: Failed to encrypt and store private key - " + e.getMessage());
             e.printStackTrace();

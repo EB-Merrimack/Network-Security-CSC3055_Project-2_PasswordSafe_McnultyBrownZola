@@ -89,21 +89,32 @@ public class LookupPrivateKeyPanel extends JPanel {
         try {
             String encryptedPrivKey = entry.getString("privkey");
             String iv = entry.getString("iv");
-
+    
             // Retrieve the correct vault key
             SecretKey rootKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.getSalt()));
             SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
-
+    
             System.out.println("🔐 Decrypting with key: " + Base64.getEncoder().encodeToString(vaultKey.getEncoded())); // Debug log
-
+    
             byte[] decryptedBytes = VaultEncryption.decryptAESGCM(
                 Base64.getDecoder().decode(encryptedPrivKey),
                 vaultKey,
                 Base64.getDecoder().decode(iv)
             );
-
+    
             System.out.println("✅ Decryption successful!"); // Debug log
-            return new String(decryptedBytes);
+            
+            // Convert from Base64 if necessary
+            String decryptedKey = new String(decryptedBytes);
+            
+            try {
+                byte[] decodedKey = Base64.getDecoder().decode(decryptedKey);
+                return Base64.getEncoder().encodeToString(decodedKey); // Ensure output is correctly formatted
+            } catch (IllegalArgumentException e) {
+                // If decoding fails, the key was already plain text
+                return decryptedKey;
+            }
+    
         } catch (Exception e) {
             e.printStackTrace(); // Log exception details
             return "[Error decrypting private key]";
