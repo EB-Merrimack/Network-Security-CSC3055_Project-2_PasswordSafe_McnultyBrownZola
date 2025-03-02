@@ -2,6 +2,7 @@ package Vault;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.security.PrivateKey;
 import java.util.Base64;
 import java.io.IOException;
 import java.io.InvalidObjectException;
@@ -22,28 +23,30 @@ public class VaultSealer implements JSONSerializable {
     private String rootPasswordHash;
     private boolean isSealed;
     private String userpassword;
-    
-    public VaultSealer(Vault vault, String userPassword) {
-        System.out.println("🔍 Debug: Sealing Vault...");
-        this.userpassword = userPassword;
+        private byte[] encryptedData;
         
-        try {
-            // Load vault data from the provided Vault object
-            this.salt = vault.getSalt();
-            this.passwords = vault.getPasswords();
-            this.privKeys = vault.getPrivateKeys();
-            this.vaultKeyIV = vault.getVaultKeyIV();
-
-            byte[] saltBytes = Base64.getDecoder().decode(this.salt);
-
-            // Derive the root key from the user password and salt
-            SecretKey rootKey = VaultEncryption.deriveRootKey(userPassword, saltBytes);
-
-            // Retrieve the vault key using the root key
-            SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
-
-            // Encrypt the in-memory vault data
-            byte[] encryptedData = encryptVaultData(vaultKey);
+        public VaultSealer(Vault vault, String userPassword) {
+            System.out.println("🔍 Debug: Sealing Vault...");
+            this.userpassword = userPassword;
+            
+            try {
+                // Load vault data from the provided Vault object
+                this.salt = vault.getSalt();
+                this.passwords = vault.getPasswords();
+                this.privKeys = vault.getPrivateKeys();
+                this.vaultKeyIV = vault.getVaultKeyIV();
+    
+                byte[] saltBytes = Base64.getDecoder().decode(this.salt);
+    
+                // Derive the root key from the user password and salt
+                SecretKey rootKey = VaultEncryption.deriveRootKey(userPassword, saltBytes);
+    
+                // Retrieve the vault key using the root key
+                SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
+    
+                // Encrypt the in-memory vault data
+               this.encryptedData = encryptVaultData(vaultKey);
+          
 
             // Encrypt the vault key using the root key
             this.encryptedVaultKey = encryptVaultKey(rootKey, vaultKey);
@@ -79,8 +82,7 @@ public class VaultSealer implements JSONSerializable {
             System.exit(0);
         }
     }
-
-    private byte[] encryptVaultData(SecretKey vaultKey) throws Exception {
+         private byte[] encryptVaultData(SecretKey vaultKey) throws Exception {
         byte[] vaultData = (new JSONObject().toString()).getBytes();
         byte[] iv = VaultEncryption.generateRandomIV();
         GCMParameterSpec spec = new GCMParameterSpec(128, iv);
@@ -128,6 +130,7 @@ public class VaultSealer implements JSONSerializable {
         json.put("vaultKeyIV", this.vaultKeyIV);
         json.put("encryptedVaultKey", Base64.getEncoder().encodeToString(this.encryptedVaultKey));
         json.put("rootPasswordHash", this.rootPasswordHash);
+        json.put("encryptedVaultData", Base64.getEncoder().encodeToString(this.encryptedData)); 
         return json;
     }
 

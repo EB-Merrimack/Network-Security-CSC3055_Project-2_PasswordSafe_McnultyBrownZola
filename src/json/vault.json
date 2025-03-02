@@ -1,7 +1,8 @@
 {
-   "salt" : "PlqsGkc7yaEBFdgg",
+   "salt" : "2G9YoGe1Ywwib6Vv",
    "rootPasswordHash" : "umgoG6xOhCqlSxlM2zAC9I9MxXrUOOTw6dSlg1UvBPE=",
-   "encryptedVaultKey" : "FvoESQmj2CrtE/vbw2HbVscknJhtPQ6GkF1mgtBLpcgzPmD/7zNsi3fdDRjCY+nT",
-   "vaultKeyIV" : "tlOga0a8JxdQ+phk"
+   "encryptedVaultData" : "FMDpMHpfsvbvNVnspFMxm+Jm",
+   "encryptedVaultKey" : "YSaDDGfisZz/ms0A8eCiekD0lCCrTudDk6QDU1BXYJSs6euNXjejaj1vLJ+MgPaO",
+   "vaultKeyIV" : "qtQddcS+0M35zqVz"
 }
 
