@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InvalidObjectException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
+
+import Gui.LoginPanel;
 import merrimackutil.json.JSONSerializable;
 import merrimackutil.json.JsonIO;
 import merrimackutil.json.types.JSONArray;
@@ -70,12 +72,15 @@ public class VaultSealer implements JSONSerializable {
             // Optionally return or log success
             System.out.println("✅ Vault sealed successfully.");
 
-            this.isSealed = true;
-
+            
+          
         } catch (Exception e) {
             System.err.println("❌ Error sealing vault: " + e.getMessage());
             e.printStackTrace();
         } finally {
+            LoginPanel.isSealed = true;
+             // Verify by printing the success message and the isSealed status
+    System.out.println("✅ Vault sealed successfully. isSealed: " + LoginPanel.isSealed);
             // Clear the password after use for security
             this.userpassword = null;
             //exit the program
@@ -134,7 +139,4 @@ public class VaultSealer implements JSONSerializable {
         return json;
     }
 
-    public boolean isVaultSealed() {
-        return this.isSealed;
-    }
 }

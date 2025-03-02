@@ -5,12 +5,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Base64;
 import javax.crypto.SecretKey;
+
+import Gui.LoginPanel;
 import merrimackutil.json.JSONSerializable;
 import merrimackutil.json.JsonIO;
 import merrimackutil.json.types.JSONArray;
 import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.types.JSONType;
-
 public class VaultOpener implements JSONSerializable {
     private String salt;
     private JSONArray passwords;
@@ -60,7 +61,7 @@ public class VaultOpener implements JSONSerializable {
             System.out.println("✅ Vault successfully opened.");
 
             // Mark the vault as unsealed
-            this.isSealed = false; // Set isSealed to false once the vault is opened
+            LoginPanel.isSealed = false; // Set isSealed to false once the vault is opened
 
         } catch (Exception e) {
             System.err.println("❌ Error opening vault: " + e.getMessage());

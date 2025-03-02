@@ -19,6 +19,8 @@ import Gui.GUIBuilder;
 
 
 public class Vault implements JSONSerializable {
+    //initalize seal for vault opening and clossing
+   
     private String salt;
     private String rootPasswordHash;
     private JSONArray passwords;
@@ -285,6 +287,10 @@ public class Vault implements JSONSerializable {
             }
             return "Not found";
         }
+
+
+
+     
         
         }
         
