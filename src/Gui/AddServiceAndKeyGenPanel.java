@@ -65,13 +65,12 @@ public class AddServiceAndKeyGenPanel extends JPanel {
             return;
         }
 
-        // Add credentials to the vault (This assumes encryption is handled in Vault
-        // class)
+        // Add credentials to the vault
         try {
             String service = serviceField.getText();
             String user = userField.getText();
-            String encryptedPass = passField.getText(); // Assuming it's Base64 encoded
-            byte[] iv = VaultEncryption.generateRandomIV(); // Generate IV for the password
+            String encryptedPass = passField.getText(); 
+            byte[] iv = VaultEncryption.generateRandomIV(); 
 
             String encodedIV = Base64.getEncoder().encodeToString(iv);
             vault.addPassword(service, user, encryptedPass, encodedIV);
