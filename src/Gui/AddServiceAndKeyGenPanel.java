@@ -73,7 +73,8 @@ public class AddServiceAndKeyGenPanel extends JPanel {
             String encryptedPass = passField.getText(); // Assuming it's Base64 encoded
             byte[] iv = VaultEncryption.generateRandomIV(); // Generate IV for the password
 
-            vault.addPassword(service, user, encryptedPass, iv);
+            String encodedIV = Base64.getEncoder().encodeToString(iv);
+            vault.addPassword(service, user, encryptedPass, encodedIV);
             JOptionPane.showMessageDialog(this, "Service credentials added successfully!", "Success",
                     JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception e) {

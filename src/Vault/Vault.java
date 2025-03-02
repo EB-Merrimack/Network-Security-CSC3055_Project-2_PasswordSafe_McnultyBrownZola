@@ -194,9 +194,9 @@ public class Vault implements JSONSerializable {
     }
 
     // 🔹 Add a new password entry
-    public void addPassword(String service, String user, String encryptedPass, byte[] iv) {
+    public void addPassword(String service, String user, String encryptedPass, String encodedIV) {
         JSONObject passEntry = new JSONObject();
-        passEntry.put("iv", iv);
+        passEntry.put("iv", encodedIV);
         passEntry.put("service", service);
         passEntry.put("user", user);
         passEntry.put("pass", encryptedPass);
