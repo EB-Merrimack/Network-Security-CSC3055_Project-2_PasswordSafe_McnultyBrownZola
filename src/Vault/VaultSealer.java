@@ -1,76 +1,137 @@
 package Vault;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Base64;
-
+import java.io.IOException;
+import java.io.InvalidObjectException;
 import javax.crypto.SecretKey;
-
-import Gui.GUIBuilder;
+import javax.crypto.spec.GCMParameterSpec;
+import merrimackutil.json.JSONSerializable;
 import merrimackutil.json.JsonIO;
 import merrimackutil.json.types.JSONArray;
+import merrimackutil.json.types.JSONObject;
+import merrimackutil.json.types.JSONType;
 
-public class VaultSealer {
-public VaultSealer(Vault vault) {
-        //TODO Auto-generated constructor stub
+public class VaultSealer implements JSONSerializable {
+    private String salt;
+    private JSONArray passwords;
+    private JSONArray privKeys;
+    private byte[] encryptedVaultKey;
+    private String vaultKeyIV;
+    private String rootPasswordHash;
+    private boolean isSealed;
+    private String userpassword;
+    
+    public VaultSealer(Vault vault, String userPassword) {
+        System.out.println("🔍 Debug: Sealing Vault...");
+        this.userpassword = userPassword;
+        
+        try {
+            // Load vault data from the provided Vault object
+            this.salt = vault.getSalt();
+            this.passwords = vault.getPasswords();
+            this.privKeys = vault.getPrivateKeys();
+            this.vaultKeyIV = vault.getVaultKeyIV();
+
+            byte[] saltBytes = Base64.getDecoder().decode(this.salt);
+
+            // Derive the root key from the user password and salt
+            SecretKey rootKey = VaultEncryption.deriveRootKey(userPassword, saltBytes);
+
+            // Retrieve the vault key using the root key
+            SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
+
+            // Encrypt the in-memory vault data
+            byte[] encryptedData = encryptVaultData(vaultKey);
+
+            // Encrypt the vault key using the root key
+            this.encryptedVaultKey = encryptVaultKey(rootKey, vaultKey);
+
+            // Save the password hash to persist
+            this.rootPasswordHash = vault.hashPassword(userPassword);
+
+            // Convert the vault data to JSON
+            JSONObject vaultData = createVaultJSON(encryptedData);
+
+            // Delete the old vault.json file if it exists
+            File oldVaultFile = new File("src/json/vault.json");
+            if (oldVaultFile.exists()) {
+                oldVaultFile.delete();
+                System.out.println("🗑️ Old vault.json file deleted.");
+            }
+
+            // Write encrypted vault data to the new vault.json file
+            writeToFile(vaultData);
+
+            // Optionally return or log success
+            System.out.println("✅ Vault sealed successfully.");
+
+            this.isSealed = true;
+
+        } catch (Exception e) {
+            System.err.println("❌ Error sealing vault: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            // Clear the password after use for security
+            this.userpassword = null;
+            //exit the program
+            System.exit(0);
+        }
     }
 
-public void sealVault() {
-            try {
-                // Retrieve the stored user password from GUIBuilder
-                String rootPassword = GUIBuilder.getUserPassword();
-                if (rootPassword == null || rootPassword.isEmpty()) {
-                    throw new IllegalStateException("Root password is null or empty!");
-                }
-        
-                System.out.println("🔍 Debug: Retrieved user password.");
-        
-                // Ensure salt is generated and properly stored
-                if (this.salt == null || this.salt.isEmpty()) {
-                    System.out.println("🔍 Debug: Salt is missing, attempting to load from JSON...");
-        
-                    // Try to load the salt from the saved JSON file (vault.json)
-                    File vaultFile = new File("src\\json\\vault.json");
-                    if (vaultFile.exists()) {
-                        Vault loadedVault = Vault.loadVault(vaultFile);
-                        this.salt = loadedVault.getSalt();  // Retrieve the salt from the loaded Vault
-                        System.out.println("🔍 Debug: Salt loaded from JSON: " + this.salt);
-                    } else {
-                        throw new IllegalStateException("Vault file does not exist and salt is missing!");
-                    }
-                }
-        
-                byte[] saltBytes = Base64.getDecoder().decode(this.salt);  // Use this.salt instead of getSalt()
-                System.out.println("🔍 Debug: Salt (Base64): " + this.salt);
-        
-                // Derive root key from the user password and retrieved salt
-                SecretKey rootKey = VaultEncryption.deriveRootKey(rootPassword, saltBytes);
-                System.out.println("🔍 Debug: Root key successfully derived.");
-        
-                // Retrieve the vault key using the derived root key
-                SecretKey vaultKey = VaultEncryption.getVaultKey(this, rootKey);
-                if (vaultKey == null) {
-                    throw new IllegalStateException("Vault key is not initialized properly!");
-                }
-        
-                System.out.println("🔍 Debug: Vault key successfully retrieved using root key.");
-        
-                // Encrypt the in-memory vault data (passwords and private keys)
-                JSONArray encryptedPasswords = VaultEncryption.encryptJSONArray(this.passwords, vaultKey);
-                JSONArray encryptedPrivKeys = VaultEncryption.encryptJSONArray(this.privKeys, vaultKey);
-                System.out.println("🔍 Debug: Vault data encrypted.");
-        
-                // Encrypt the vault key with the root key
-                byte[] vaultKeyIV = Base64.getDecoder().decode(this.getVaultKeyIV());
-                this.encryptedVaultKey = VaultEncryption.encryptAESGCM(vaultKey.getEncoded(), rootKey, vaultKeyIV);
-                System.out.println("🔍 Debug: Vault key encrypted with root key.");
-        
-                // Write sealed vault data using JSONSerializable
-                JsonIO.writeSerializedObject(this, new File("./json/vault.json"));
-                System.out.println("✅ Vault sealed successfully!");
-        
-            } catch (Exception e) {
-                System.err.println("❌ Error sealing vault: " + e.getMessage());
-                e.printStackTrace();
-            }
-}
+    private byte[] encryptVaultData(SecretKey vaultKey) throws Exception {
+        byte[] vaultData = (new JSONObject().toString()).getBytes();
+        byte[] iv = VaultEncryption.generateRandomIV();
+        GCMParameterSpec spec = new GCMParameterSpec(128, iv);
+        return VaultEncryption.encryptAESGCM(vaultData, vaultKey, spec);
+    }
+
+    private byte[] encryptVaultKey(SecretKey rootKey, SecretKey vaultKey) throws Exception {
+        byte[] iv = VaultEncryption.generateRandomIV();
+        GCMParameterSpec spec = new GCMParameterSpec(128, iv);
+        return VaultEncryption.encryptAESGCM(vaultKey.getEncoded(), rootKey, spec);
+    }
+
+    private JSONObject createVaultJSON(byte[] encryptedData) {
+        JSONObject json = new JSONObject();
+        json.put("salt", this.salt);
+        json.put("vaultKeyIV", this.vaultKeyIV);
+        json.put("encryptedVaultKey", Base64.getEncoder().encodeToString(this.encryptedVaultKey));
+        json.put("encryptedVaultData", Base64.getEncoder().encodeToString(encryptedData));
+        json.put("rootPasswordHash", this.rootPasswordHash);
+        return json;
+    }
+
+    private void writeToFile(JSONObject vaultData) throws Exception {
+        File vaultFile = new File("src/json/vault.json");
+        JsonIO.writeFormattedObject(this, vaultFile);
+    }
+
+    @Override
+    public void deserialize(JSONType jsonType) throws InvalidObjectException {
+        JSONObject json = (JSONObject) jsonType;
+        try {
+            this.salt = json.getString("salt");
+            this.vaultKeyIV = json.getString("vaultKeyIV");
+            this.encryptedVaultKey = Base64.getDecoder().decode(json.getString("encryptedVaultKey"));
+            this.rootPasswordHash = json.getString("rootPasswordHash");
+        } catch (Exception e) {
+            throw new InvalidObjectException("Failed to deserialize VaultSealer: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public JSONType toJSONType() {
+        JSONObject json = new JSONObject();
+        json.put("salt", this.salt);
+        json.put("vaultKeyIV", this.vaultKeyIV);
+        json.put("encryptedVaultKey", Base64.getEncoder().encodeToString(this.encryptedVaultKey));
+        json.put("rootPasswordHash", this.rootPasswordHash);
+        return json;
+    }
+
+    public boolean isVaultSealed() {
+        return this.isSealed;
+    }
 }

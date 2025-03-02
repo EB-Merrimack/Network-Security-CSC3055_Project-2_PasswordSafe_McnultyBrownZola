@@ -1,18 +1,7 @@
 {
-   "salt" : "B7/gzYHeA25SCEZ3",
-   "privkeys" : [
-      {
-         "privkey" : "ndsFOvjO4+d4hF6kSsLxj4gXbHc0HNl1BmFCv8nKYZatycd4j2jTbloNYhutpMCCtIYRhL83G6xWOeAp",
-         "service" : "git",
-         "iv" : "dv6oNAA19BGQhP6Q"
-      }
-   ],
-   "passwords" : [
-   ],
-   "rootPasswordHash" : "D631KkWAz+u5nmEWITmvPTpkA8HTa4PklityHRyMvQs=",
-   "vaultkey" : {
-      "iv" : "QinIHvyvbuY2h3Xv",
-      "key" : "AFt1IQ9ys9tt2PtxbJ+venFtTfx+50Ak34wJe8ShM1GVH8MQAe+Ap4A8gsK3uvW/"
-   }
+   "salt" : "PlqsGkc7yaEBFdgg",
+   "rootPasswordHash" : "umgoG6xOhCqlSxlM2zAC9I9MxXrUOOTw6dSlg1UvBPE=",
+   "encryptedVaultKey" : "FvoESQmj2CrtE/vbw2HbVscknJhtPQ6GkF1mgtBLpcgzPmD/7zNsi3fdDRjCY+nT",
+   "vaultKeyIV" : "tlOga0a8JxdQ+phk"
 }
 

@@ -102,7 +102,7 @@ public class Vault implements JSONSerializable {
         }
     
         // ✅ Hash Password Using SHA-256
-        private String hashPassword(String password) {
+        public String hashPassword(String password) {
             try {
                 MessageDigest digest = MessageDigest.getInstance("SHA-256");
                 byte[] hashedBytes = digest.digest(password.getBytes());

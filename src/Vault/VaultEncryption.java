@@ -132,6 +132,28 @@ public class VaultEncryption {
     return encryptedArray;
 }
 
+public static SecretKey getSecretKeyFromBytes(byte[] vaultKeyBytes) {
+    if (vaultKeyBytes == null || vaultKeyBytes.length != KEY_SIZE) {
+        throw new IllegalArgumentException("Invalid vault key bytes. Expected length: " + KEY_SIZE);
+    }
+    return new SecretKeySpec(vaultKeyBytes, "AES");
+}
+
+// Method to encrypt using AES-GCM
+public static byte[] encryptAESGCM(byte[] data, SecretKey key, GCMParameterSpec spec) throws Exception {
+    // Initialize the Cipher for AES/GCM/NoPadding
+    Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+    
+    // Initialize the cipher in ENCRYPT_MODE with the key and GCMParameterSpec (which includes the IV)
+    cipher.init(Cipher.ENCRYPT_MODE, key, spec);
+    
+    // Perform the encryption and return the result
+    return cipher.doFinal(data);
+}
+
+
+
+
 
 
 }

@@ -73,8 +73,9 @@ public class MainPanel extends JPanel {
     private void logoutAndSealVault() {
         
         // Create a new VaultSealer object
-        VaultSealer vaultSealer = new VaultSealer(vault);
+        VaultSealer vaultSealer = new VaultSealer(vault, parent.getUserPassword());
         // Call the sealVault method to seal the vault
+        
 
     }
 }

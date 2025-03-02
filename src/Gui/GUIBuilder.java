@@ -85,7 +85,7 @@ public class GUIBuilder extends JFrame {
      private void logoutAndSealVault() {
         
         // Create a new VaultSealer object
-        VaultSealer vaultSealer = new VaultSealer(vault);
+        VaultSealer vaultSealer = new VaultSealer(vault, userPassword);
         // Call the sealVault method to seal the vault
 
     }
