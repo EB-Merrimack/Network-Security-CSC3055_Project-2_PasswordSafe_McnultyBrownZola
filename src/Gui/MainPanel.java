@@ -5,6 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 import Vault.Vault;
 import Vault.VaultEncryption;
+import Vault.VaultSealer;
 
 //import Vault.VaultSealer;
 import java.io.File;
@@ -56,7 +57,7 @@ public class MainPanel extends JPanel {
         // Create logout button and add action to it
         JButton logoutButton = new JButton("Logout");
         logoutButton.setPreferredSize(new Dimension(100, 30));
-        //logoutButton.addActionListener(e -> logoutAndSealVault());
+        logoutButton.addActionListener(e -> logoutAndSealVault());
 
         // Create a JPanel for logout button and add it to the top of the main panel
         JPanel logoutPanel = new JPanel();
@@ -69,11 +70,11 @@ public class MainPanel extends JPanel {
     }
 
     // Method to logout and seal the vault
-    /*private void logoutAndSealVault() {
+    private void logoutAndSealVault() {
         
-        // Call the sealVault method from the Vault class
-        Vault vault2 = new Vault();
-        vault2.sealVault();
+        // Create a new VaultSealer object
+        VaultSealer vaultSealer = new VaultSealer(vault);
+        // Call the sealVault method to seal the vault
 
-    }*/
+    }
 }
