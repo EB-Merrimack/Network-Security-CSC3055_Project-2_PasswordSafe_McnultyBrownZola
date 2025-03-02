@@ -1,19 +1,24 @@
 package Gui;
 
 import Vault.Vault;
+import Vault.VaultEncryption;
 import merrimackutil.json.types.JSONArray;
 import merrimackutil.json.types.JSONObject;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.FileReader;
 import java.util.Base64;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class LookupPrivateKeyPanel extends JPanel {
     private JTextField serviceNameField;
     private JButton searchButton;
     private JTextArea resultArea;
     private Vault vault;
+    private SecretKey vaultKey; // 🔹 Decrypted Vault Key
 
     public LookupPrivateKeyPanel(File vaultFile) {
         try {
@@ -24,15 +29,18 @@ public class LookupPrivateKeyPanel extends JPanel {
                 System.out.println("Vault file does not exist.");
             }
 
+            // Load and decrypt the Vault Key
+            vaultKey = loadVaultKey();
+
             // Try loading the vault
             this.vault = Vault.loadVault(vaultFile);
             if (vault != null) {
-                System.out.println("Vault loaded successfully!");  // Debug log
+                System.out.println("Vault loaded successfully!"); // Debug log
             } else {
-                System.out.println("Failed to load vault.");  // Debug log
+                System.out.println("Failed to load vault."); // Debug log
             }
         } catch (Exception e) {
-            System.out.println("Failed to load vault: " + e.getMessage());  // Debug log
+            System.out.println("Failed to load vault: " + e.getMessage()); // Debug log
             e.printStackTrace();
         }
 
@@ -50,7 +58,7 @@ public class LookupPrivateKeyPanel extends JPanel {
         inputPanel.add(new JLabel("Service Name:"));
         inputPanel.add(serviceNameField);
 
-        // Button panel to fix layout issue
+        // Button panel
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(searchButton);
 
@@ -61,9 +69,42 @@ public class LookupPrivateKeyPanel extends JPanel {
 
         // Button action listener
         searchButton.addActionListener(e -> {
-            System.out.println("Button clicked!");  // Debug log
+            System.out.println("Button clicked!"); // Debug log
             searchPrivateKey();
         });
+    }
+
+    private SecretKey loadVaultKey() {
+        try {
+            // Load the vault key JSON
+            File vaultKeyFile = new File("vault_key.json");
+            if (!vaultKeyFile.exists()) {
+                throw new RuntimeException("Vault key file not found.");
+            }
+
+            String jsonContent = new String(java.nio.file.Files.readAllBytes(vaultKeyFile.toPath()));
+            JSONObject vaultKeyJson = new JSONObject();
+            byte[] salt = Base64.getDecoder().decode(vaultKeyJson.getString("salt"));
+            byte[] encryptedVaultKey = Base64.getDecoder().decode(vaultKeyJson.getString("vaultKeyValue"));
+            byte[] iv = Base64.getDecoder().decode(vaultKeyJson.getString("vaultKeyIV"));
+
+            // Prompt user for password
+            String userPassword = JOptionPane.showInputDialog("Enter your password:");
+            if (userPassword == null || userPassword.isEmpty()) {
+                throw new RuntimeException("Password is required to decrypt vault.");
+            }
+
+            // Derive Root Key
+            SecretKey rootKey = VaultEncryption.deriveRootKey(userPassword, salt);
+
+            // Decrypt Vault Key
+            byte[] decryptedVaultKey = VaultEncryption.decryptAESGCM(encryptedVaultKey, rootKey, iv);
+            return new SecretKeySpec(decryptedVaultKey, "AES");
+
+        } catch (Exception e) {
+            System.err.println("Error loading vault key: " + e.getMessage());
+            throw new RuntimeException("Failed to decrypt vault key.");
+        }
     }
 
     private void searchPrivateKey() {
@@ -74,44 +115,38 @@ public class LookupPrivateKeyPanel extends JPanel {
             return;
         }
 
-        // Ensure vault is not null
-        if (vault == null) {
-            JOptionPane.showMessageDialog(this, "Vault not loaded properly!", "Error", JOptionPane.ERROR_MESSAGE);
+        if (vault == null || vaultKey == null) {
+            JOptionPane.showMessageDialog(this, "Vault or Vault Key not loaded properly!", "Error",
+                    JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // Ensure private keys are not null or empty
         JSONArray privateKeys = vault.getPrivateKeys();
         if (privateKeys == null || privateKeys.size() == 0) {
-            System.out.println("No private keys available in the vault.");  // Debug log
+            System.out.println("No private keys available in the vault.");
             resultArea.setText("No private keys stored.");
             return;
         }
 
-        System.out.println("Found " + privateKeys.size() + " private key(s) in the vault.");  // Debug log
-
-        boolean found = false;
-
         for (int i = 0; i < privateKeys.size(); i++) {
             JSONObject entry = privateKeys.getObject(i);
             String vaultServiceName = entry.getString("service");
-            System.out.println("Searching for service: " + serviceName + " in vault entry: " + vaultServiceName);  // Debug log
 
             if (vaultServiceName.equalsIgnoreCase(serviceName)) {
-                String privateKey = entry.getString("privkey");
+                byte[] encryptedKey = Base64.getDecoder().decode(entry.getString("privkey"));
+                byte[] iv = Base64.getDecoder().decode(entry.getString("iv"));
 
-                // Encode the private key in Base64
-                String base64PrivateKey = Base64.getEncoder().encodeToString(privateKey.getBytes());
-
-                resultArea.setText(" Service: " + serviceName + "\nBase64 Encoded Private Key: " + base64PrivateKey);
-                found = true;
-                break;
+                try {
+                    byte[] decryptedPrivateKey = VaultEncryption.decryptAESGCM(encryptedKey, vaultKey, iv);
+                    resultArea.setText(
+                            " Service: " + serviceName + "\nDecrypted Private Key: " + new String(decryptedPrivateKey));
+                    return;
+                } catch (Exception e) {
+                    resultArea.setText("Failed to decrypt private key.");
+                }
             }
         }
 
-        if (!found) {
-            resultArea.setText("No private key found for service: " + serviceName);
-            System.out.println("Private key not found for service: " + serviceName);  // Debug log
-        }
+        resultArea.setText("No private key found for service: " + serviceName);
     }
 }
