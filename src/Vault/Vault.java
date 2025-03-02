@@ -285,7 +285,7 @@ public class Vault implements JSONSerializable {
             }
             return "Not found";
         }
-        public void sealVault() {
+        /*public void sealVault() {
             try {
                 // Retrieve the stored user password from GUIBuilder
                 String rootPassword = GUIBuilder.getUserPassword();
@@ -343,7 +343,7 @@ public class Vault implements JSONSerializable {
                 System.err.println("❌ Error sealing vault: " + e.getMessage());
                 e.printStackTrace();
             }
-        }
+        }*/
         
         
         

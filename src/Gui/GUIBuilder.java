@@ -14,7 +14,7 @@ public class GUIBuilder extends JFrame {
     private JPanel mainPanel;
     private Vault vault;
     private static final String VAULT_FILE = "src/json/vault.json";
-    private static String userPassword;
+    private String userPassword;
     
     
         public GUIBuilder() {
@@ -61,7 +61,7 @@ public class GUIBuilder extends JFrame {
                         "Confirm Logout", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                 if (result == JOptionPane.YES_OPTION) {
                     // Log out and seal the vault
-                    logoutAndSealVault();
+                    //logoutAndSealVault();
                     System.exit(0);  // Close the application
                 }
     
@@ -81,12 +81,12 @@ public class GUIBuilder extends JFrame {
             return LoginPanel.isUserLoggedIn;}
     
         // Method to log out and seal the vault
-        private void logoutAndSealVault() {
+       /*  private void logoutAndSealVault() {
             Vault vault2 = new Vault();
             // Call the sealVault method from the Vault class
             vault2.sealVault();
     
-        }
+        }*/
     
         public void saveVault() {
             try {
@@ -120,7 +120,7 @@ public class GUIBuilder extends JFrame {
             System.out.println("✅ Debug: User Password Stored in GUIBuilder: " + password);
         }
         
-        public static String getUserPassword() {
-            return userPassword;
+        public String getUserPassword() {
+            return this.userPassword;
     }
 }
