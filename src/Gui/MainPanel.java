@@ -38,7 +38,11 @@ public class MainPanel extends JPanel {
         addCredentialButton.addActionListener(e -> parent.showPanel("AddCredentialPanel", new AddCredentialPanel(parent)));
         lookupCredentialButton.addActionListener(e -> parent.showPanel("LookupCredentialPanel", new LookupCredentialPanel(vault, parent)));
         generatePasswordButton.addActionListener(e -> parent.showPanel("GenerateRandomPasswordPanel", new GenerateRandomPasswordPanel()));
+      //  addPrivateKeyButton.addActionListener(e -> parent.showPanel("AddPrivateKeyPanel", new AddPrivateKeyPanel(parent)));
+       // lookupPrivateKeyButton.addActionListener(e -> parent.showPanel("LookupPrivateKeyPanel", new LookupPrivateKeyPanel(parent)));
+        //generateKeyPairButton.addActionListener(e -> parent.showPanel("AddServiceAndKeyGenPanel", new AddServiceAndKeyGenPanel(vault.getVaultFile(), vault.getRootPassword())));
 
+        
         // Add buttons to content panel
         contentPanel.add(welcomeLabel);
         contentPanel.add(addCredentialButton);

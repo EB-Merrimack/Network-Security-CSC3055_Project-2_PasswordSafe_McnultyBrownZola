@@ -6,93 +6,79 @@ import Vault.VaultEncryption;
 import javax.crypto.SecretKey;
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 public class AddServiceAndKeyGenPanel extends JPanel {
-    private JTextField serviceNameField;
-    private JTextArea generatedKeyArea;
-    private JButton generateKeyButton, addToVaultButton;
     private Vault vault;
-    private String rootPassword;
-    private File vaultFile; 
+    private JTextField serviceField;
+    private JTextField userField;
+    private JTextField passField;
+    private JButton generateKeyButton;
+    private JButton addServiceButton;
+    private byte[] generatedKey;
 
-    public AddServiceAndKeyGenPanel(File vaultFile, String rootPassword) {
-        this.vaultFile = vaultFile;
-        this.vault = Vault.loadVault(vaultFile);
-        this.rootPassword = rootPassword;
+    public AddServiceAndKeyGenPanel(GUIBuilder parent, Vault vault) {
+        this.vault = vault;
 
-        serviceNameField = new JTextField(15);
-        generatedKeyArea = new JTextArea(5, 20);
-        generatedKeyArea.setLineWrap(true);
-        generatedKeyArea.setWrapStyleWord(true);
-        generatedKeyArea.setEditable(false);
+        // Set layout for the panel
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
+        // Initialize components
+        serviceField = new JTextField(20);
+        userField = new JTextField(20);
+        passField = new JTextField(20);
         generateKeyButton = new JButton("Generate Key");
-        addToVaultButton = new JButton("Add to Vault");
+        addServiceButton = new JButton("Add Service Credentials");
 
-        JPanel inputPanel = new JPanel(new GridLayout(2, 2, 10, 10));
-        inputPanel.add(new JLabel("Service Name:"));
-        inputPanel.add(serviceNameField);
-        inputPanel.add(generateKeyButton);
-        inputPanel.add(new JScrollPane(generatedKeyArea));
-
-        setLayout(new BorderLayout());
-        add(inputPanel, BorderLayout.CENTER);
-        add(addToVaultButton, BorderLayout.SOUTH);
-
+        // Add action listeners
         generateKeyButton.addActionListener(e -> generateKey());
-        addToVaultButton.addActionListener(e -> addToVault());
+        addServiceButton.addActionListener(e -> addServiceCredentials());
+
+        // Add components to the panel
+        add(new JLabel("Service:"));
+        add(serviceField);
+        add(new JLabel("User:"));
+        add(userField);
+        add(new JLabel("Password:"));
+        add(passField);
+        add(generateKeyButton);
+        add(addServiceButton);
     }
 
+    // Generate a random key
     private void generateKey() {
         try {
-            KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-            keyGen.initialize(2048);
-            KeyPair keyPair = keyGen.generateKeyPair();
-
-            String privateKeyBase64 = Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded());
-            generatedKeyArea.setText(privateKeyBase64);
-
-            JOptionPane.showMessageDialog(this, "Key generated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-        } catch (NoSuchAlgorithmException e) {
-            JOptionPane.showMessageDialog(this, "Error generating key: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            generatedKey = VaultEncryption.generateRandomKey();
+            String encodedKey = Base64.getEncoder().encodeToString(generatedKey);
+            passField.setText(encodedKey); // Set generated key as password
+            System.out.println("Generated key: " + encodedKey);
+        } catch (Exception e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error generating key", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void addToVault() {
-        String service = serviceNameField.getText().trim();
-        String privateKey = generatedKeyArea.getText().trim();
-
-        if (service.isEmpty() || privateKey.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Service and key must be provided.", "Error", JOptionPane.ERROR_MESSAGE);
+    // Add service credentials to the vault
+    private void addServiceCredentials() {
+        if (serviceField.getText().isEmpty() || userField.getText().isEmpty() || passField.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill in all fields.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
+        // Add credentials to the vault (This assumes encryption is handled in Vault
+        // class)
         try {
-            // get vault key from root password
-            SecretKey vaultKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.generateSalt()));
+            String service = serviceField.getText();
+            String user = userField.getText();
+            String encryptedPass = passField.getText(); // Assuming it's Base64 encoded
+            byte[] iv = VaultEncryption.generateRandomIV(); // Generate IV for the password
 
-            // Generate IV and encrypt the private key
-            byte[] iv = VaultEncryption.generateRandomIV();
-            String ivBase64 = Base64.getEncoder().encodeToString(iv);
-            byte[] encryptedKey = VaultEncryption.encryptAESGCM(privateKey.getBytes(), vaultKey, iv);
-            String encryptedKeyBase64 = Base64.getEncoder().encodeToString(encryptedKey);
-
-            // Add private key entry to vault
-            vault.addPrivateKey(service, encryptedKeyBase64, ivBase64);
-
-            // Save vault to file
-            vault.saveVault(vaultFile);
-
-            JOptionPane.showMessageDialog(this, "Service & key added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            vault.addPassword(service, user, encryptedPass, iv);
+            JOptionPane.showMessageDialog(this, "Service credentials added successfully!", "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error encrypting key: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error adding service credentials", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
