@@ -38,6 +38,10 @@ public class MainPanel extends JPanel {
         addCredentialButton.addActionListener(e -> parent.showPanel("AddCredentialPanel", new AddCredentialPanel(parent)));
         lookupCredentialButton.addActionListener(e -> parent.showPanel("LookupCredentialPanel", new LookupCredentialPanel(vault, parent)));
         generatePasswordButton.addActionListener(e -> parent.showPanel("GenerateRandomPasswordPanel", new GenerateRandomPasswordPanel()));
+        addPrivateKeyButton.addActionListener(e -> parent.showPanel("AddServiceAndPrivateKeyPanel", new AddServiceAndPrivateKeyPanel(vault, parent)));
+        lookupPrivateKeyButton.addActionListener(e -> parent.showPanel("LookupPrivateKeyPanel", new LookupPrivateKeyPanel(vault, parent)));
+
+
 
         // Add buttons to content panel
         contentPanel.add(welcomeLabel);
@@ -51,7 +55,7 @@ public class MainPanel extends JPanel {
         // Create logout button and add action to it
         JButton logoutButton = new JButton("Logout");
         logoutButton.setPreferredSize(new Dimension(100, 30));
-        logoutButton.addActionListener(e -> logoutAndSealVault());
+        //logoutButton.addActionListener(e -> logoutAndSealVault());
 
         // Create a JPanel for logout button and add it to the top of the main panel
         JPanel logoutPanel = new JPanel();
@@ -64,11 +68,11 @@ public class MainPanel extends JPanel {
     }
 
     // Method to logout and seal the vault
-    private void logoutAndSealVault() {
+    /*private void logoutAndSealVault() {
         
         // Call the sealVault method from the Vault class
         Vault vault2 = new Vault();
         vault2.sealVault();
 
-    }
+    }*/
 }

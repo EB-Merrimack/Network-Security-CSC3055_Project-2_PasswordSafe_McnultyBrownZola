@@ -2,48 +2,92 @@ package Gui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.security.SecureRandom;
+import java.util.Base64;
+import Vault.Vault;
+import Vault.VaultEncryption;
+import javax.crypto.SecretKey;
 
 public class AddServiceAndPrivateKeyPanel extends JPanel {
     private JTextField serviceNameField;
-    private JPasswordField privateKeyField;
     private JButton saveButton;
+    private Vault vault;
+    private GUIBuilder guiBuilder; // Needed to access stored user password
 
-    public AddServiceAndPrivateKeyPanel() {
+    public AddServiceAndPrivateKeyPanel(Vault vault, GUIBuilder guiBuilder) {
+        this.vault = vault;
+        this.guiBuilder = guiBuilder;
+
         setLayout(new BorderLayout());
 
         // Input Panel
         JPanel inputPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         serviceNameField = new JTextField(15);
-        privateKeyField = new JPasswordField(15);
-        
+
         inputPanel.add(new JLabel("Service Name:"));
         inputPanel.add(serviceNameField);
-        inputPanel.add(new JLabel("Private Key:"));
-        inputPanel.add(privateKeyField);
 
         // Save Button
         saveButton = new JButton("Save");
-        saveButton.addActionListener(e -> saveService());
+        saveButton.addActionListener(e -> saveServiceAndPrivateKey());
 
         // Add components to panel
         add(inputPanel, BorderLayout.CENTER);
         add(saveButton, BorderLayout.SOUTH);
     }
 
-    private void saveService() {
-        String serviceName = serviceNameField.getText();
-        String privateKey = new String(privateKeyField.getPassword());
+    private void saveServiceAndPrivateKey() {
+        String serviceName = serviceNameField.getText().trim();
 
-        if (serviceName.isEmpty() || privateKey.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Both fields are required!", "Error", JOptionPane.ERROR_MESSAGE);
+        if (serviceName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a service name!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // Placeholder action
-        JOptionPane.showMessageDialog(this, "Service and Private Key saved!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        // Retrieve the stored user password from GUIBuilder
+        String rootPassword = guiBuilder.getUserPassword();
+        if (rootPassword == null || rootPassword.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Error: No stored password. Please restart and log in again.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-        // Clear fields after saving
-        serviceNameField.setText("");
-        privateKeyField.setText("");
+        // Verify the root password
+        if (!vault.verifyRootPassword(rootPassword)) {
+            JOptionPane.showMessageDialog(this, "Incorrect root password!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            // Generate a new random private key (32 bytes long, Base64 encoded)
+            byte[] privateKeyBytes = new byte[32];
+            new SecureRandom().nextBytes(privateKeyBytes);
+            String privateKey = Base64.getEncoder().encodeToString(privateKeyBytes);
+            System.out.println("✅ Debug: Generated Private Key: " + privateKey);
+
+            // Derive the correct vault key
+            SecretKey rootKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.getSalt()));
+            SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
+
+            // Generate IV for encryption
+            byte[] iv = VaultEncryption.generateRandomIV();
+            String encodedIV = Base64.getEncoder().encodeToString(iv);
+
+            // Encrypt the private key using the vault key
+            byte[] encryptedPrivKeyBytes = VaultEncryption.encryptAESGCM(privateKey.getBytes(), vaultKey, iv);
+            String encryptedPrivKey = Base64.getEncoder().encodeToString(encryptedPrivKeyBytes);
+
+            System.out.println("✅ Debug: Private Key Encrypted Successfully!");
+
+            // Store the encrypted private key in the vault
+            vault.addPrivateKey(serviceName, encryptedPrivKey, encodedIV);
+            guiBuilder.saveVault();
+
+            JOptionPane.showMessageDialog(this, "Service and private key added successfully!");
+
+        } catch (Exception e) {
+            System.err.println("❌ Error: Failed to encrypt and store private key - " + e.getMessage());
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error: Failed to save private key!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
