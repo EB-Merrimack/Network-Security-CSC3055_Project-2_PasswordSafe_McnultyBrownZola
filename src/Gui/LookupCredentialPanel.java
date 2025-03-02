@@ -2,7 +2,6 @@ package Gui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Optional;
 import Vault.Vault;
 import Vault.VaultEncryption;
 import merrimackutil.json.types.JSONArray;
@@ -12,9 +11,9 @@ import javax.crypto.SecretKey;
 
 public class LookupCredentialPanel extends JPanel {
     private JTextField serviceNameField;
-    private JButton searchButton;
+    private JButton searchButton, backButton;
     private Vault vault;
-    private GUIBuilder guiBuilder; // Needed to access stored user password
+    private GUIBuilder guiBuilder;
 
     public LookupCredentialPanel(Vault vault, GUIBuilder guiBuilder) {
         this.vault = vault;
@@ -24,15 +23,21 @@ public class LookupCredentialPanel extends JPanel {
 
         serviceNameField = new JTextField(15);
         searchButton = new JButton("Lookup");
+        backButton = new JButton("← Back");
 
         JPanel inputPanel = new JPanel(new GridLayout(1, 2, 10, 10));
         inputPanel.add(new JLabel("Service Name:"));
         inputPanel.add(serviceNameField);
 
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        buttonPanel.add(searchButton);
+        buttonPanel.add(backButton);
+
         add(inputPanel, BorderLayout.CENTER);
-        add(searchButton, BorderLayout.SOUTH);
+        add(buttonPanel, BorderLayout.SOUTH);
 
         searchButton.addActionListener(e -> searchVault());
+        backButton.addActionListener(e -> guiBuilder.showPanel("Main"));
     }
 
     private void searchVault() {
@@ -43,7 +48,6 @@ public class LookupCredentialPanel extends JPanel {
             return;
         }
 
-        // Retrieve the stored user password from GUIBuilder
         String rootPassword = guiBuilder.getUserPassword();
 
         if (rootPassword == null || rootPassword.isEmpty()) {
@@ -51,13 +55,11 @@ public class LookupCredentialPanel extends JPanel {
             return;
         }
 
-        // Verify the stored password is correct
         if (!vault.verifyRootPassword(rootPassword)) {
             JOptionPane.showMessageDialog(this, "Incorrect root password!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // Retrieve and decrypt the credential
         String credential = getCredential(serviceName, rootPassword);
 
         if (credential != null) {
@@ -70,15 +72,11 @@ public class LookupCredentialPanel extends JPanel {
     private String getCredential(String serviceName, String rootPassword) {
         JSONArray passwords = vault.getPasswords();
 
-        System.out.println("🔍 Searching for service: " + serviceName); // Debug log
-
         for (int i = 0; i < passwords.size(); i++) {
             JSONObject entry = passwords.getObject(i);
             String storedServiceName = entry.getString("service");
-            System.out.println("🔑 Found service in vault: " + storedServiceName); // Debug log
 
             if (storedServiceName.equalsIgnoreCase(serviceName)) {
-                System.out.println("✅ Match found, decrypting password..."); // Debug log
                 return "User: " + entry.getString("user") + "\nPassword: " + decryptPassword(entry, rootPassword);
             }
         }
@@ -91,11 +89,8 @@ public class LookupCredentialPanel extends JPanel {
             String encryptedPass = entry.getString("pass");
             String iv = entry.getString("iv");
 
-            // 🔹 Retrieve the correct vault key
             SecretKey rootKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.getSalt()));
-            SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);  // ✅ Use the stored vault key
-
-            System.out.println("🔐 Decrypting with key: " + Base64.getEncoder().encodeToString(vaultKey.getEncoded())); // Debug log
+            SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
 
             byte[] decryptedBytes = VaultEncryption.decryptAESGCM(
                 Base64.getDecoder().decode(encryptedPass),
@@ -103,10 +98,9 @@ public class LookupCredentialPanel extends JPanel {
                 Base64.getDecoder().decode(iv)
             );
 
-            System.out.println("✅ Decryption successful!"); // Debug log
             return new String(decryptedBytes);
         } catch (Exception e) {
-            e.printStackTrace(); // Log exception details
+            e.printStackTrace();
             return "[Error decrypting password]";
         }
     }
