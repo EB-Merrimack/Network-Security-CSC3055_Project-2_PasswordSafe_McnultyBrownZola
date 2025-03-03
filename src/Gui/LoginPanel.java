@@ -3,8 +3,8 @@ package Gui;
 import javax.swing.*;
 import Vault.Vault;
 import Vault.VaultOpener;
-
 import java.awt.*;
+import java.io.File;
 
 public class LoginPanel extends JPanel {
     private Vault vault;
@@ -13,7 +13,7 @@ public class LoginPanel extends JPanel {
     private JPasswordField confirmPasswordField;
     private JButton actionButton;
     private JLabel messageLabel;
-    private JLabel confirmPasswordLabel;  // Declare confirmPasswordLabel here
+    private JLabel confirmPasswordLabel;
     public static boolean isUserLoggedIn = false;
 
     public LoginPanel(GUIBuilder parent, Vault vault) {
@@ -30,13 +30,12 @@ public class LoginPanel extends JPanel {
         confirmPasswordLabel = new JLabel("Confirm Password:");
         confirmPasswordLabel.setVisible(false);
         confirmPasswordField = new JPasswordField(15);
-        confirmPasswordField.setVisible(false); // Hidden unless needed
+        confirmPasswordField.setVisible(false);
 
         actionButton = new JButton("Unlock Vault");
         messageLabel = new JLabel("", SwingConstants.CENTER);
-        messageLabel.setVisible(false); // Initially hidden
+        messageLabel.setVisible(false);
 
-        // Position elements in grid
         gbc.gridx = 0;
         gbc.gridy = 0;
         add(passwordLabel, gbc);
@@ -60,19 +59,18 @@ public class LoginPanel extends JPanel {
         gbc.gridwidth = 2;
         add(messageLabel, gbc);
 
-        // Check vault state and set behavior
-        if (vault.getRootPasswordHash() == null || vault.getRootPasswordHash().isEmpty()) {
+        // Check if the encrypted vault file exists or if the JSON file exists
+        File vaultFile = new File("src/json/vault.enc");
+        File jsonFile = new File("src/json/vault.json");
+
+        if (vaultFile.exists()) {
+            setupLoginMode();
+        } else if (jsonFile.exists()) {
             setupInitializationMode();
         } else {
-            setupLoginMode();
+            setupInitializationMode();  // If neither file exists, prompt for initialization
         }
     }
-
-/**
- * Sets up the panel for vault initialization mode. Updates UI components
- * to prompt the user for a password and confirmation. Configures the
- * action button to trigger vault initialization.
- */
 
     private void setupInitializationMode() {
         actionButton.setText("Initialize Vault");
@@ -82,10 +80,6 @@ public class LoginPanel extends JPanel {
         actionButton.addActionListener(e -> initializeVault());
     }
 
-    /**
-     * Sets up the panel for vault login mode. Updates UI components to prompt the
-     * user for a password. Configures the action button to trigger vault login.
-     */
     private void setupLoginMode() {
         actionButton.setText("Unlock Vault");
         confirmPasswordField.setVisible(false);
@@ -93,7 +87,6 @@ public class LoginPanel extends JPanel {
         actionButton.addActionListener(e -> loginToVault());
     }
 
-    // Method to initialize the vault
     private void initializeVault() {
         String password = new String(passwordField.getPassword());
         String confirmPassword = new String(confirmPasswordField.getPassword());
@@ -109,7 +102,6 @@ public class LoginPanel extends JPanel {
             return;
         }
 
-        // Store the password in GUIBuilder for later 
         parent.setUserPassword(password);
         System.out.println("✅ Debug: Stored Password in GUIBuilder: " + password);
 
@@ -120,55 +112,34 @@ public class LoginPanel extends JPanel {
         parent.showPanel("Main");
     }
 
-    /**
-     * Handles the login process for the vault. Retrieves the user's password input
-     * from the password field, stores it in the GUIBuilder, and attempts to unseal
-     * the vault using the entered password. If unsealing is successful, verifies
-     * the root password and grants access to the vault if correct.
-     */
-private void loginToVault() {
-    String password = new String(passwordField.getPassword());
+    private void loginToVault() {
+        String password = new String(passwordField.getPassword());
 
-    System.out.println("🔍 Debug: User entered password: " + password);
-
-    // Store the password in GUIBuilder so it can be used later
-    parent.setUserPassword(password);
-    System.out.println("✅ Debug: Stored User Password in GUIBuilder: " + password);
+        System.out.println("🔍 Debug: User entered password: " + password);
+        parent.setUserPassword(password);
+        System.out.println("✅ Debug: Stored User Password in GUIBuilder: " + password);
 
         try {
-            // Try to unseal the vault using the entered password
             System.out.println("🔑 Attempting to unseal the vault...");
             VaultOpener vaultOpener = new VaultOpener(password);
-            // If unsealing is successful, continue with login
-            JOptionPane.showMessageDialog(this, "Vault successfully unsealed.");
+            
+            if (vaultOpener.unseal(vault)) {  // The `unseal()` method should return `true` if successful
+                JOptionPane.showMessageDialog(this, "Vault successfully unsealed.");
+                isUserLoggedIn = true;
+                parent.showPanel("Main");
+            } else {
+                throw new Exception("Failed to unseal vault.");
+            }
         } catch (Exception e) {
-            // Handle error if unsealing fails
             showMessage("Failed to unseal the vault. Incorrect password.");
-            return;
         }
-     
-
-    // Proceed with verifying the root password after unsealing the vault
-    if (vault.verifyRootPassword(password)) {
-        JOptionPane.showMessageDialog(this, "Access granted.");
-        parent.showPanel("Main");
-        isUserLoggedIn = true;
-    } else {
-        showMessage("Incorrect password! Try again.");}
     }
 
-
-    /**
-     * Displays a message in the message label, typically used for
-     * displaying errors, warnings, or information to the user.
-     * @param message the message to display
-     */
     private void showMessage(String message) {
         messageLabel.setText(message);
         messageLabel.setVisible(true);
     }
 
-    // Method to check the stregnth of a password
     private String checkPasswordStrength(String password) {
         if (password.length() < 8) {
             return "Too short! Password must be greater than 8 characters!";

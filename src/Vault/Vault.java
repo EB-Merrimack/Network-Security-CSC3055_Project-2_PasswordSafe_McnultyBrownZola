@@ -334,6 +334,16 @@ public class Vault implements JSONSerializable {
         }
 
 
+        /**
+         * Returns the Vault data as a byte array, which is the UTF-8 encoded JSON representation of the Vault.
+         * @return the Vault data as a byte array
+         */
+        public byte[] getBytes() {
+            return this.toJSONType().toString().getBytes();
+        }
+        
+
+
 
      
         
