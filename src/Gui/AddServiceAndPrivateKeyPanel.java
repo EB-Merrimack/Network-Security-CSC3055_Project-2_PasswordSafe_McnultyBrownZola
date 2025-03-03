@@ -8,9 +8,10 @@ import Vault.Vault;
 import Vault.VaultEncryption;
 import javax.crypto.SecretKey;
 
+// Add service and private key to vault
 public class AddServiceAndPrivateKeyPanel extends JPanel {
     private JTextField serviceNameField;
-    private JButton saveButton;
+    private JButton saveButton, backButton;
     private Vault vault;
     private GUIBuilder guiBuilder; // Needed to access stored user password
 
@@ -21,19 +22,30 @@ public class AddServiceAndPrivateKeyPanel extends JPanel {
         setLayout(new BorderLayout());
 
         // Input Panel
-        JPanel inputPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+        JPanel inputPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
         serviceNameField = new JTextField(15);
 
-        inputPanel.add(new JLabel("Service Name:"));
-        inputPanel.add(serviceNameField);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        inputPanel.add(new JLabel("Service Name:"), gbc);
+        gbc.gridx = 1;
+        inputPanel.add(serviceNameField, gbc);
 
         // Save Button
         saveButton = new JButton("Save");
+        backButton = new JButton("← Back");
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.add(saveButton);
+        buttonPanel.add(backButton);
+
         saveButton.addActionListener(e -> saveServiceAndPrivateKey());
 
-        // Add components to panel
         add(inputPanel, BorderLayout.CENTER);
-        add(saveButton, BorderLayout.SOUTH);
+        add(buttonPanel, BorderLayout.SOUTH);
     }
 
     private void saveServiceAndPrivateKey() {
@@ -58,37 +70,31 @@ public class AddServiceAndPrivateKeyPanel extends JPanel {
         }
     
         try {
-            // ✅ Generate a new random private key
+            // Generate a new random private key
             byte[] privateKeyBytes = new byte[32];
             new SecureRandom().nextBytes(privateKeyBytes);
             String privateKey = Base64.getEncoder().encodeToString(privateKeyBytes);
-            System.out.println("✅ Debug: Generated Private Key (Before Encryption): " + privateKey);
     
-            // ✅ Retrieve Vault Key (Should match what was decrypted!)
+            // Retrieve Vault Key
             SecretKey rootKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.getSalt()));
             SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
     
-            // 🔍 Debug: Print the vault key used for encryption
-            System.out.println("🔐 Debug: Vault Key Used for Encryption (After Retrieval): " + Base64.getEncoder().encodeToString(vaultKey.getEncoded()));
-    
-            // ✅ Generate IV for encryption
+            // Generate IV for encryption
             byte[] iv = VaultEncryption.generateRandomIV();
             String encodedIV = Base64.getEncoder().encodeToString(iv);
     
-            // ✅ Encrypt the private key using AES-GCM
+            // Encrypt the private key using AES-GCM
             byte[] encryptedPrivKeyBytes = VaultEncryption.encryptAESGCM(privateKey.getBytes(), vaultKey, iv);
             String encryptedPrivKey = Base64.getEncoder().encodeToString(encryptedPrivKeyBytes);
-    
-            System.out.println("🔒 Debug: Encrypted Private Key (Base64 Stored in Vault): " + encryptedPrivKey);
-    
-            // ✅ Store the encrypted private key in the vault
+        
+            // Store the encrypted private key in the vault
             vault.addPrivateKey(serviceName, encryptedPrivKey, encodedIV);
             guiBuilder.saveVault();
     
             JOptionPane.showMessageDialog(this, "Service and private key added successfully!");
     
         } catch (Exception e) {
-            System.err.println("❌ Error: Failed to encrypt and store private key - " + e.getMessage());
+            System.err.println("Error: Failed to encrypt and store private key - " + e.getMessage());
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error: Failed to save private key!", "Error", JOptionPane.ERROR_MESSAGE);
         }

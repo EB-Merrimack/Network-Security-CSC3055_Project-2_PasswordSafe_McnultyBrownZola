@@ -2,7 +2,6 @@ package Gui;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Optional;
 import Vault.Vault;
 import Vault.VaultEncryption;
 import merrimackutil.json.types.JSONArray;
@@ -10,9 +9,10 @@ import merrimackutil.json.types.JSONObject;
 import java.util.Base64;
 import javax.crypto.SecretKey;
 
+// Lookup the credentials in the vault
 public class LookupCredentialPanel extends JPanel {
     private JTextField serviceNameField;
-    private JButton searchButton;
+    private JButton searchButton, backButton;
     private Vault vault;
     private GUIBuilder guiBuilder; // Needed to access stored user password
 
@@ -22,19 +22,37 @@ public class LookupCredentialPanel extends JPanel {
 
         setLayout(new BorderLayout());
 
+        JPanel inputPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
         serviceNameField = new JTextField(15);
         searchButton = new JButton("Lookup");
+        backButton = new JButton("← Back");
 
-        JPanel inputPanel = new JPanel(new GridLayout(1, 2, 10, 10));
-        inputPanel.add(new JLabel("Service Name:"));
-        inputPanel.add(serviceNameField);
 
+        // Label Service Name
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.LINE_END;
+        inputPanel.add(new JLabel("Service Name:"), gbc);
+
+        // Service Name Field
+        gbc.gridx = 1;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        inputPanel.add(serviceNameField, gbc);
+
+        // Add components to panel
         add(inputPanel, BorderLayout.CENTER);
         add(searchButton, BorderLayout.SOUTH);
+        add(backButton, BorderLayout.SOUTH);
 
+        // Button Action
         searchButton.addActionListener(e -> searchVault());
     }
 
+    // Search the vault for the service name
     private void searchVault() {
         String serviceName = serviceNameField.getText().trim();
 
@@ -70,15 +88,12 @@ public class LookupCredentialPanel extends JPanel {
     private String getCredential(String serviceName, String rootPassword) {
         JSONArray passwords = vault.getPasswords();
 
-        System.out.println("🔍 Searching for service: " + serviceName); // Debug log
 
         for (int i = 0; i < passwords.size(); i++) {
             JSONObject entry = passwords.getObject(i);
             String storedServiceName = entry.getString("service");
-            System.out.println("🔑 Found service in vault: " + storedServiceName); // Debug log
 
             if (storedServiceName.equalsIgnoreCase(serviceName)) {
-                System.out.println("✅ Match found, decrypting password..."); // Debug log
                 return "User: " + entry.getString("user") + "\nPassword: " + decryptPassword(entry, rootPassword);
             }
         }
@@ -86,6 +101,7 @@ public class LookupCredentialPanel extends JPanel {
         return null;
     }
 
+    // Decrypt the password
     private String decryptPassword(JSONObject entry, String rootPassword) {
         try {
             String encryptedPass = entry.getString("pass");
@@ -93,9 +109,7 @@ public class LookupCredentialPanel extends JPanel {
 
             // 🔹 Retrieve the correct vault key
             SecretKey rootKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.getSalt()));
-            SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);  // ✅ Use the stored vault key
-
-            System.out.println("🔐 Decrypting with key: " + Base64.getEncoder().encodeToString(vaultKey.getEncoded())); // Debug log
+            SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);  // Use the stored vault key
 
             byte[] decryptedBytes = VaultEncryption.decryptAESGCM(
                 Base64.getDecoder().decode(encryptedPass),
@@ -103,7 +117,7 @@ public class LookupCredentialPanel extends JPanel {
                 Base64.getDecoder().decode(iv)
             );
 
-            System.out.println("✅ Decryption successful!"); // Debug log
+            System.out.println("Decryption successful!"); // Debug log
             return new String(decryptedBytes);
         } catch (Exception e) {
             e.printStackTrace(); // Log exception details

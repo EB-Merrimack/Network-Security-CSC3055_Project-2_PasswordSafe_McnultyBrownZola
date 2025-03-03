@@ -82,6 +82,7 @@ public class LoginPanel extends JPanel {
         actionButton.addActionListener(e -> loginToVault());
     }
 
+    // Method to initialize the vault
     private void initializeVault() {
         String password = new String(passwordField.getPassword());
         String confirmPassword = new String(confirmPasswordField.getPassword());
@@ -97,7 +98,7 @@ public class LoginPanel extends JPanel {
             return;
         }
 
-        // Store the password in GUIBuilder for later retrieval
+        // Store the password in GUIBuilder for later 
         parent.setUserPassword(password);
         System.out.println("✅ Debug: Stored Password in GUIBuilder: " + password);
 
@@ -131,6 +132,7 @@ public class LoginPanel extends JPanel {
         messageLabel.setVisible(true);
     }
 
+    // Method to check the stregnth of a password
     private String checkPasswordStrength(String password) {
         if (password.length() < 8) {
             return "Too short! Password must be greater than 8 characters!";
