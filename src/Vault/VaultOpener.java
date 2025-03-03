@@ -1,116 +1,66 @@
 package Vault;
 
 import java.io.File;
-import java.io.InvalidObjectException;
-import java.nio.file.Files;
-import java.security.PrivateKey;
 import java.util.Base64;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
-
-import merrimackutil.json.JSONSerializable;
 import merrimackutil.json.JsonIO;
-import merrimackutil.json.types.JSONArray;
 import merrimackutil.json.types.JSONObject;
-import merrimackutil.json.types.JSONType;
 
-public class VaultOpener implements JSONSerializable {
-    private String salt;
-    private JSONArray passwords;
-    private JSONArray privKeys;
-    private String rootPasswordHash;
-    private String vaultKeyIV;
-    private String vaultKeyValue;
-    private byte[] decryptedData;
-    private byte[] decryptedVaultKey;
+public class VaultOpener {
 
     public VaultOpener(String userPassword) {
         try {
-            // Load the encrypted vault file
+            // Load encrypted vault data
             File vaultFile = new File("src/json/vault.json");
-            String jsonString = new String(Files.readAllBytes(vaultFile.toPath()));
-            JSONObject json = new JSONObject();
+            JSONObject vaultData = JsonIO.readObject(vaultFile);
 
-            // Deserialize the vault JSON
-            this.salt = json.getString("salt");
-            this.vaultKeyIV = json.getObject("vaultkey").getString("iv");
-            this.vaultKeyValue = json.getObject("vaultkey").getString("key");
-            this.rootPasswordHash = json.getString("rootPasswordHash");
+            // Extract required fields
+            String salt = vaultData.getString("salt");
+            JSONObject vaultKeyObject = (JSONObject) vaultData.get("vaultkey");
+            String vaultKeyIV = vaultKeyObject.getString("iv");
+            String encryptedVaultKeyBase64 = vaultKeyObject.getString("encryptedVaultKey");
+            String encryptedVaultDataBase64 = vaultData.getString("encryptedVaultData");
 
-            // Derive the root key using the user password and salt
-            byte[] saltBytes = Base64.getDecoder().decode(this.salt);
+            if (salt == null || vaultKeyIV == null || encryptedVaultKeyBase64 == null || encryptedVaultDataBase64 == null) {
+                throw new IllegalArgumentException("Missing required fields in JSON.");
+            }
+
+            byte[] encryptedVaultKey = Base64.getDecoder().decode(encryptedVaultKeyBase64);
+            byte[] encryptedVaultData = Base64.getDecoder().decode(encryptedVaultDataBase64);
+
+            // Derive root key
+            byte[] saltBytes = Base64.getDecoder().decode(salt);
             SecretKey rootKey = VaultEncryption.deriveRootKey(userPassword, saltBytes);
+            System.out.println("Debug: Derived Root Key (Base64): " + Base64.getEncoder().encodeToString(rootKey.getEncoded()));
 
-            // Decrypt the vault key using the root key
-            this.decryptedVaultKey = decryptVaultKey(rootKey);
+            // Decrypt vault key
+            byte[] iv = Base64.getDecoder().decode(vaultKeyIV);
+            GCMParameterSpec spec = new GCMParameterSpec(128, iv);
+            byte[] vaultKeyBytes = VaultEncryption.decryptAESGCMopener(encryptedVaultKey, rootKey, spec);
 
-            // Decrypt the vault data using the decrypted vault key
-            this.decryptedData = decryptVaultData(decryptedVaultKey);
+            if (vaultKeyBytes == null) {
+                throw new IllegalArgumentException("Decryption failed: vaultKeyBytes is null.");
+            }
 
-            // Parse the decrypted data (we assume the format is the same as shown)
-            JSONObject decryptedVault = new JSONObject();
-            this.passwords = decryptedVault.getArray("passwords");
-            this.privKeys = decryptedVault.getArray("privkeys");
+            // Validate vault key length
+            if (vaultKeyBytes.length != 16 && vaultKeyBytes.length != 24 && vaultKeyBytes.length != 32) {
+                throw new IllegalArgumentException("Invalid AES key length: " + vaultKeyBytes.length);
+            }
+            SecretKey vaultKey = VaultEncryption.reconstructKey(vaultKeyBytes);
 
-            // Optionally log or return the decrypted vault information
-            System.out.println("✅ Vault decrypted successfully.");
+            // Decrypt vault data
+            byte[] vaultIV = VaultEncryption.extractIV(encryptedVaultData);
+            GCMParameterSpec vaultSpec = new GCMParameterSpec(128, vaultIV);
+            byte[] decryptedVaultData = VaultEncryption.decryptAESGCMopener(encryptedVaultData, vaultKey, vaultSpec);
+
+            // Output decrypted vault data
+            String decryptedJson = new String(decryptedVaultData);
+            System.out.println("Decrypted Vault Data: " + decryptedJson);
 
         } catch (Exception e) {
-            System.err.println("❌ Error decrypting vault: " + e.getMessage());
+            System.err.println("❌ Error opening vault: " + e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    private byte[] decryptVaultKey(SecretKey rootKey) throws Exception {
-        String ivBase64 = this.vaultKeyIV;
-        byte[] iv = Base64.getDecoder().decode(ivBase64);
-        GCMParameterSpec spec = new GCMParameterSpec(128, iv);
-
-        // Decrypt the vault key using the root key
-        return VaultEncryption.decryptAESGCM(Base64.getDecoder().decode(this.vaultKeyValue), rootKey, spec);
-    }
-
-    private byte[] decryptVaultData(byte[] vaultKey) throws Exception {
-        // Decrypt the vault data using the decrypted vault key
-        String encryptedVaultDataBase64 = new String(Files.readAllBytes(new File("src/json/vault.json").toPath()));
-        JSONObject json = new JSONObject();
-        String encryptedVaultData = json.getString("encryptedVaultData");
-
-        byte[] encryptedData = Base64.getDecoder().decode(encryptedVaultData);
-
-        // Extract IV from the vault JSON
-        String ivBase64 = json.getString("vaultKeyIV");
-        byte[] iv = Base64.getDecoder().decode(ivBase64);
-        GCMParameterSpec spec = new GCMParameterSpec(128, iv);
-
-        return VaultEncryption.decryptAESGCMopener(encryptedData, vaultKey, spec);
-    }
-
-    @Override
-    public void deserialize(JSONType jsonType) throws InvalidObjectException {
-        // Implementation of deserialization if necessary
-        JSONObject json = (JSONObject) jsonType;
-        try {
-            this.salt = json.getString("salt");
-            this.vaultKeyIV = json.getString("vaultKeyIV");
-            this.rootPasswordHash = json.getString("rootPasswordHash");
-        } catch (Exception e) {
-            throw new InvalidObjectException("Failed to deserialize VaultDecryptor: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public JSONType toJSONType() {
-        // Return the decrypted vault data as JSON format
-        JSONObject json = new JSONObject();
-        json.put("salt", this.salt);
-        json.put("rootPasswordHash", this.rootPasswordHash);
-        json.put("passwords", this.passwords);
-        json.put("privkeys", this.privKeys);
-        JSONObject vaultKeyObject = new JSONObject();
-        vaultKeyObject.put("iv", this.vaultKeyIV);
-        vaultKeyObject.put("key", this.vaultKeyValue);
-        json.put("vaultkey", vaultKeyObject);
-        return json;
     }
 }

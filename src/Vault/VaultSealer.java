@@ -136,7 +136,7 @@ public class VaultSealer implements JSONSerializable {
         json.put("encryptedVaultData", Base64.getEncoder().encodeToString(this.encryptedData)); 
         JSONObject vaultKeyObject = new JSONObject();
         vaultKeyObject.put("iv", this.vaultKeyIV);
-        json.put("encryptedVaultKey", Base64.getEncoder().encodeToString(this.encryptedVaultKey));
+        vaultKeyObject.put("encryptedVaultKey", Base64.getEncoder().encodeToString(this.encryptedVaultKey));
         json.put("vaultkey", vaultKeyObject);
         return json;
     }

@@ -15,8 +15,8 @@ public class MainPanel extends JPanel {
     private Vault vault;
     private GUIBuilder parent;
 
-    public MainPanel(GUIBuilder parent, Vault vault) {
-        this.parent = parent;
+    public MainPanel(JFrame parentFrame, Vault vault) {
+        this.parent = (GUIBuilder) parentFrame;
         this.vault = vault;
 
         // Set layout for MainPanel
@@ -35,11 +35,11 @@ public class MainPanel extends JPanel {
         JButton generateKeyPairButton = new JButton("Generate Key Pair");
 
         // Add action listeners
-        addCredentialButton.addActionListener(e -> parent.showPanel("AddCredentialPanel", new AddCredentialPanel(parent)));
-        lookupCredentialButton.addActionListener(e -> parent.showPanel("LookupCredentialPanel", new LookupCredentialPanel(vault, parent)));
-        addPrivateKeyButton.addActionListener(e -> parent.showPanel("AddServiceAndPrivateKeyPanel", new AddServiceAndPrivateKeyPanel(vault, parent)));
-        lookupPrivateKeyButton.addActionListener(e -> parent.showPanel("LookupPrivateKeyPanel", new LookupPrivateKeyPanel(vault, parent)));
-        generateKeyPairButton.addActionListener(e -> parent.showPanel("AddServiceAndKeyGenPanel", new AddServiceAndKeyGenPanel(vault, parent)));
+        addCredentialButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("AddCredentialPanel", new AddCredentialPanel(parentFrame)));
+        lookupCredentialButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("LookupCredentialPanel", new LookupCredentialPanel(vault, (GUIBuilder) parentFrame)));
+        addPrivateKeyButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("AddServiceAndPrivateKeyPanel", new AddServiceAndPrivateKeyPanel(vault, (GUIBuilder) parentFrame)));
+        lookupPrivateKeyButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("LookupPrivateKeyPanel", new LookupPrivateKeyPanel(vault, (GUIBuilder) parentFrame)));
+        generateKeyPairButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("AddServiceAndKeyGenPanel", new AddServiceAndKeyGenPanel(vault, (GUIBuilder) parentFrame)));
 
 
 

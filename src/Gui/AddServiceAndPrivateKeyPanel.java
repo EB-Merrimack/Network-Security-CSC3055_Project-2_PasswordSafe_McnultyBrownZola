@@ -30,10 +30,18 @@ public class AddServiceAndPrivateKeyPanel extends JPanel {
         // Save Button
         saveButton = new JButton("Save");
         saveButton.addActionListener(e -> saveServiceAndPrivateKey());
-
+        //add back button
+        JButton backButton = new JButton("← Back");
+        backButton.addActionListener(e -> guiBuilder.showPanel("Main"));
         // Add components to panel
-        add(inputPanel, BorderLayout.CENTER);
-        add(saveButton, BorderLayout.SOUTH);
+    // Panel to hold buttons
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));  // Use FlowLayout for both buttons to appear side by side
+    buttonPanel.add(backButton);  // Add back button to panel
+    buttonPanel.add(saveButton);  // Add save button to panel
+
+    // Add components to main panel
+    add(inputPanel, BorderLayout.CENTER);
+    add(buttonPanel, BorderLayout.SOUTH);  // Add button panel to the south section
     }
 
     private void saveServiceAndPrivateKey() {

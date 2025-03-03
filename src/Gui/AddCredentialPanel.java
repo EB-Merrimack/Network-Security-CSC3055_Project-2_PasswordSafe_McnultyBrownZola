@@ -28,7 +28,7 @@ public class AddCredentialPanel extends JPanel {
     private static final String ICON_EYE_OPEN = "photos/eye-solid.png";
     private static final String ICON_EYE_CLOSED = "photos/eye-slash-solid.png";
 
-    public AddCredentialPanel(GUIBuilder parent) {
+    public AddCredentialPanel(JFrame parentFrame) {
         setLayout(new BorderLayout());
 
         // Create Fields
@@ -92,8 +92,8 @@ public class AddCredentialPanel extends JPanel {
         // Action Listeners
         generatePasswordButton.addActionListener(e -> generateRandomPassword());
         showPasswordButton.addActionListener(e -> togglePasswordVisibility());
-        addToVaultButton.addActionListener(e -> addToVault(parent));
-        backButton.addActionListener(e -> parent.showPanel("Main"));
+        addToVaultButton.addActionListener(e -> addToVault((GUIBuilder) parentFrame));
+        backButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("Main"));
     }
 
     private void generateRandomPassword() {
