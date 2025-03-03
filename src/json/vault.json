@@ -1,10 +1,40 @@
 {
-   "salt" : "fj9woukR856ZE3an",
+   "salt" : "NEmnon9IlAmVGA7S",
+   "privkeys" : [
+      {
+         "privkey" : "SDCe2CFUo4fr+HYTi3zxOCC0MCV1fNW1Gd5GVAcBL0B5i25kvpOtba0FgWB9yoSH3AEs1bZ35fRXJVqQ",
+         "service" : "test",
+         "iv" : "LeO0ukn81Tbw6WdS"
+      },
+      {
+         "privkey" : "4Uewbs8EeExI8hmikiV/SYzQVTtM2uOHXrKeJYT6L86WgC0LSnIUJc+24YklpUOxHQzGhXVc5W0pbHV1",
+         "service" : "wevwwveq",
+         "iv" : "0WIBmsCiJcIGg7w6"
+      },
+      {
+         "privkey" : "fY2NYmIfaElCJ43r/qINNuVIgwUCNo3KtFA3gUCbXkHGNVtGM69FU7OeEa1tkro0Ed8ZutpY+XxeQkpb+wBvU7LYRu+4NtjgO10XLBUlKo8mj7zC69poExcHtBKVgHYuyG6gSC76Sp66ASSY14OMljZV3kfxLPFqP2rnkNWVvUi9ty1puomAJ0ddCiGnlJ5cTntJKLATHCZkWzH3q0kJkWLon3hJ3nxiddelmSMHxQXffrgu7Mf34qcH4iqHMN+pmur+dJ6nuqU4zPQvDvzG7ibhdjcH8Ut1re7Dd2bSExufKTXA32Mfr95j/R8HUWnWloBRJi/SXF4P0KbHlHJSEOUNkIgZB3lTShgIBExFoBI1pBOXQaZbCC3nff/ff34GzuzFMLXbP9K11JyGfyNa9WqzaQb6MUNO",
+         "service" : "trebvrew bv",
+         "iv" : "hpGQeobj0per5l94"
+      }
+   ],
+   "passwords" : [
+      {
+         "pass" : "CSzJPfDjIza9x1/pyQP+SNqkAMsPWB3mRmxb5op+m3A=",
+         "service" : "tesdt",
+         "iv" : "SQPsRGmsYCfJps2t",
+         "user" : "test"
+      },
+      {
+         "pass" : "eWH9cB53CJdvjWZteO0Yk6nwbxx9eMnjc/2ShGM2+Jk=",
+         "service" : "test",
+         "iv" : "1c/sHH62ufeNaCf5",
+         "user" : "test"
+      }
+   ],
    "rootPasswordHash" : "umgoG6xOhCqlSxlM2zAC9I9MxXrUOOTw6dSlg1UvBPE=",
-   "encryptedVaultData" : "4Mn8IHQ2D8WINvN4wLbu4R8K",
    "vaultkey" : {
-      "iv" : "fL8V8IfRJVTiXyfh",
-      "encryptedVaultKey" : "o7msVUSiRVMeCvf/G96uSpQ84rQ8rXYSZDN06O2kh/u5E5+u7DR5uatJ4+jar1Tw"
+      "iv" : "m2nypJer0A7G3F8n",
+      "key" : "X9lbDmYFMRlegy0YW7YH3l45RgIg7q5SnjZYixp0Soq+VkJFIyf+2N8QYAHUycuy"
    }
 }
 
