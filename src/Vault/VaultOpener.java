@@ -78,7 +78,7 @@ public class VaultOpener implements JSONSerializable {
     private byte[] decryptVaultData(byte[] decryptedVaultKey) throws Exception {
         // Prepare the GCM spec for vault data decryption
         GCMParameterSpec spec = new GCMParameterSpec(128, Base64.getDecoder().decode(this.vaultKeyIV));
-        return VaultEncryption.decryptAESGCMvaultkey(this.encryptedVaultKey, decryptedVaultKey, spec);
+        return VaultEncryption.decryptAESGCMvaultdata(this.encryptedVaultKey, decryptedVaultKey, spec);
     }
     @Override
     public void deserialize(JSONType jsonType) throws InvalidObjectException {

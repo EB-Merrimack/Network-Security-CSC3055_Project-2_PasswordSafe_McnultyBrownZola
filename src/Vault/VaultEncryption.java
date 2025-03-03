@@ -172,22 +172,6 @@ public static byte[] decryptAESGCMopener(byte[] encryptedData, SecretKey rootKey
 
 
 
-public static byte[] decryptAESGCMvaultkey(byte[] encryptedVaultKey, SecretKey decryptedVaultKey, GCMParameterSpec spec) {
-    try {
-        // Initialize the Cipher for AES/GCM/NoPadding
-        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-
-        // Initialize the cipher in DECRYPT_MODE with the provided decryptedVaultKey (SecretKey) and GCMParameterSpec (which contains the IV)
-        cipher.init(Cipher.DECRYPT_MODE, decryptedVaultKey, spec);
-
-        // Perform the decryption and return the result (decrypted vault key)
-        return cipher.doFinal(encryptedVaultKey);
-    } catch (Exception e) {
-        // Handle potential errors (e.g., invalid data, decryption failure)
-        System.err.println("❌ Decryption failed: " + e.getMessage());
-        throw new RuntimeException("Failed to decrypt vault key", e);
-    }
-}
 
 public static SecretKey reconstructKey(byte[] vaultKeyBytes) {
     if (vaultKeyBytes == null || (vaultKeyBytes.length != 16 && vaultKeyBytes.length != 24 && vaultKeyBytes.length != 32)) {
@@ -213,4 +197,29 @@ public static byte[] extractIV(byte[] encryptedVaultData) {
 
 
 
+
+  // Decrypt vault data using AES/GCM/NoPadding
+  public static byte[] decryptAESGCMvaultdata(byte[] encryptedVaultData, byte[] decryptedVaultKey, GCMParameterSpec spec) {
+    try {
+        // Create a SecretKey from the decryptedVaultKey byte array
+        SecretKey secretKey = new SecretKeySpec(decryptedVaultKey, "AES");
+
+        // Initialize the Cipher for AES/GCM/NoPadding
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+
+        // Initialize the cipher in DECRYPT_MODE with the SecretKey and GCMParameterSpec (which contains the IV)
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, spec);
+
+        // Perform the decryption and return the result (decrypted vault data)
+        return cipher.doFinal(encryptedVaultData);
+    } catch (Exception e) {
+        // Handle potential errors (e.g., invalid data, decryption failure)
+        System.err.println("❌ Decryption failed: " + e.getMessage());
+        throw new RuntimeException("Failed to decrypt vault data", e);
+    }
 }
+}
+
+
+
+
