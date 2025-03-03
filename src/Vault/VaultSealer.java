@@ -26,17 +26,19 @@ public class VaultSealer implements JSONSerializable {
     private boolean isSealed;
     private String userpassword;
         private byte[] encryptedData;
-        
-        public VaultSealer(Vault vault, String userPassword) {
-            System.out.println("🔍 Debug: Sealing Vault...");
-            this.userpassword = userPassword;
-            
-            try {
-                // Load vault data from the provided Vault object
-                this.salt = vault.getSalt();
-                this.passwords = vault.getPasswords();
-                this.privKeys = vault.getPrivateKeys();
-                this.vaultKeyIV = vault.getVaultKeyIV();
+                private String vaultKeyValue;
+                
+                public VaultSealer(Vault vault, String userPassword) {
+                    System.out.println("🔍 Debug: Sealing Vault...");
+                    this.userpassword = userPassword;
+                    
+                    try {
+                        // Load vault data from the provided Vault object
+                        this.salt = vault.getSalt();
+                        this.passwords = vault.getPasswords();
+                        this.privKeys = vault.getPrivateKeys();
+                        this.vaultKeyIV = vault.getVaultKeyIV();
+                        this.vaultKeyValue = vault.getVaultKeyValue();
     
                 byte[] saltBytes = Base64.getDecoder().decode(this.salt);
     
@@ -78,9 +80,7 @@ public class VaultSealer implements JSONSerializable {
             System.err.println("❌ Error sealing vault: " + e.getMessage());
             e.printStackTrace();
         } finally {
-            LoginPanel.isSealed = true;
-             // Verify by printing the success message and the isSealed status
-    System.out.println("✅ Vault sealed successfully. isSealed: " + LoginPanel.isSealed);
+            
             // Clear the password after use for security
             this.userpassword = null;
             //exit the program
@@ -132,10 +132,12 @@ public class VaultSealer implements JSONSerializable {
     public JSONType toJSONType() {
         JSONObject json = new JSONObject();
         json.put("salt", this.salt);
-        json.put("vaultKeyIV", this.vaultKeyIV);
-        json.put("encryptedVaultKey", Base64.getEncoder().encodeToString(this.encryptedVaultKey));
         json.put("rootPasswordHash", this.rootPasswordHash);
         json.put("encryptedVaultData", Base64.getEncoder().encodeToString(this.encryptedData)); 
+        JSONObject vaultKeyObject = new JSONObject();
+        vaultKeyObject.put("iv", this.vaultKeyIV);
+        json.put("encryptedVaultKey", Base64.getEncoder().encodeToString(this.encryptedVaultKey));
+        json.put("vaultkey", vaultKeyObject);
         return json;
     }
 

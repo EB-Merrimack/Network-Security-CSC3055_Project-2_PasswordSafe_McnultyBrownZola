@@ -9,7 +9,6 @@ import java.awt.*;
 public class LoginPanel extends JPanel {
     private Vault vault;
     private GUIBuilder parent;
-    public static boolean isSealed ;
     private JPasswordField passwordField;
     private JPasswordField confirmPasswordField;
     private JButton actionButton;
@@ -118,10 +117,7 @@ private void loginToVault() {
     // Store the password in GUIBuilder so it can be used later
     parent.setUserPassword(password);
     System.out.println("✅ Debug: Stored User Password in GUIBuilder: " + password);
-//checking vault seal status
-    System.out.println("🔍 Debug: isVaultSealed(): " + isSealed);
-    // Check if the vault is sealed before proceeding
-    if (isSealed) {
+
         try {
             // Try to unseal the vault using the entered password
             System.out.println("🔑 Attempting to unseal the vault...");
@@ -133,9 +129,7 @@ private void loginToVault() {
             showMessage("Failed to unseal the vault. Incorrect password.");
             return;
         }
-    } else {
-        System.out.println("🔑 Vault is already unsealed.");
-    }
+     
 
     // Proceed with verifying the root password after unsealing the vault
     if (vault.verifyRootPassword(password)) {
@@ -143,9 +137,9 @@ private void loginToVault() {
         parent.showPanel("Main");
         isUserLoggedIn = true;
     } else {
-        showMessage("Incorrect password! Try again.");
+        showMessage("Incorrect password! Try again.");}
     }
-}
+
 
     private void showMessage(String message) {
         messageLabel.setText(message);

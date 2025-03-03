@@ -30,7 +30,6 @@ public class MainPanel extends JPanel {
         JLabel welcomeLabel = new JLabel("Welcome to the Secrets Vault");
         JButton addCredentialButton = new JButton("Add Service Credentials");
         JButton lookupCredentialButton = new JButton("Lookup Credentials");
-        JButton generatePasswordButton = new JButton("Generate Password");
         JButton addPrivateKeyButton = new JButton("Add Private Key");
         JButton lookupPrivateKeyButton = new JButton("Lookup Private Key");
         JButton generateKeyPairButton = new JButton("Generate Key Pair");
@@ -38,7 +37,6 @@ public class MainPanel extends JPanel {
         // Add action listeners
         addCredentialButton.addActionListener(e -> parent.showPanel("AddCredentialPanel", new AddCredentialPanel(parent)));
         lookupCredentialButton.addActionListener(e -> parent.showPanel("LookupCredentialPanel", new LookupCredentialPanel(vault, parent)));
-        generatePasswordButton.addActionListener(e -> parent.showPanel("GenerateRandomPasswordPanel", new GenerateRandomPasswordPanel()));
         addPrivateKeyButton.addActionListener(e -> parent.showPanel("AddServiceAndPrivateKeyPanel", new AddServiceAndPrivateKeyPanel(vault, parent)));
         lookupPrivateKeyButton.addActionListener(e -> parent.showPanel("LookupPrivateKeyPanel", new LookupPrivateKeyPanel(vault, parent)));
         generateKeyPairButton.addActionListener(e -> parent.showPanel("AddServiceAndKeyGenPanel", new AddServiceAndKeyGenPanel(vault, parent)));
@@ -49,7 +47,6 @@ public class MainPanel extends JPanel {
         contentPanel.add(welcomeLabel);
         contentPanel.add(addCredentialButton);
         contentPanel.add(lookupCredentialButton);
-        contentPanel.add(generatePasswordButton);
         contentPanel.add(addPrivateKeyButton);
         contentPanel.add(lookupPrivateKeyButton);
         contentPanel.add(generateKeyPairButton);

@@ -153,7 +153,8 @@ public static byte[] encryptAESGCM(byte[] data, SecretKey key, GCMParameterSpec 
 
 
 
-
-
-
+public static byte[] decryptAESGCMopener(byte[] encryptedData, byte[] vaultKey, GCMParameterSpec spec) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'decryptAESGCMopener'");
+}
 }
