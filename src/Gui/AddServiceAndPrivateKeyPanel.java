@@ -43,6 +43,8 @@ public class AddServiceAndPrivateKeyPanel extends JPanel {
         buttonPanel.add(backButton);
 
         saveButton.addActionListener(e -> saveServiceAndPrivateKey());
+        backButton.addActionListener(e -> guiBuilder.showPanel("Main"));
+
 
         add(inputPanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);

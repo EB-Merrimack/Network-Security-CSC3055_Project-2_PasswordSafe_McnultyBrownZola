@@ -50,6 +50,8 @@ public class LookupCredentialPanel extends JPanel {
 
         // Button Action
         searchButton.addActionListener(e -> searchVault());
+        backButton.addActionListener(e -> guiBuilder.showPanel("Main"));
+
     }
 
     // Search the vault for the service name

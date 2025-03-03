@@ -48,6 +48,8 @@ public class AddServiceAndKeyGenPanel extends JPanel {
 
         // Add Button Action Listener
         generateButton.addActionListener(e -> generateAndStoreElGamalKey());
+        backButton.addActionListener(e -> guiBuilder.showPanel("Main"));
+
     }
 
     private void generateAndStoreElGamalKey() {

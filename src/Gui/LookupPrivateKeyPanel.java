@@ -45,6 +45,8 @@ public class LookupPrivateKeyPanel extends JPanel {
         add(buttonPanel, BorderLayout.SOUTH);
 
         searchButton.addActionListener(e -> searchVaultForPrivateKey());
+        backButton.addActionListener(e -> guiBuilder.showPanel("Main"));
+
     }
 
     private void searchVaultForPrivateKey() {
