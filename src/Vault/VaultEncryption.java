@@ -171,14 +171,15 @@ public static byte[] decryptAESGCMopener(byte[] encryptedData, SecretKey rootKey
 }
 
 
-public static byte[] decryptAESGCMvaultkey(byte[] encryptedVaultKey, SecretKey rootKey, GCMParameterSpec spec) {
+
+public static byte[] decryptAESGCMvaultkey(byte[] encryptedVaultKey, SecretKey decryptedVaultKey, GCMParameterSpec spec) {
     try {
         // Initialize the Cipher for AES/GCM/NoPadding
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-        
-        // Initialize the cipher in DECRYPT_MODE with the provided rootKey and GCMParameterSpec (which contains the IV)
-        cipher.init(Cipher.DECRYPT_MODE, rootKey, spec);
-        
+
+        // Initialize the cipher in DECRYPT_MODE with the provided decryptedVaultKey (SecretKey) and GCMParameterSpec (which contains the IV)
+        cipher.init(Cipher.DECRYPT_MODE, decryptedVaultKey, spec);
+
         // Perform the decryption and return the result (decrypted vault key)
         return cipher.doFinal(encryptedVaultKey);
     } catch (Exception e) {
