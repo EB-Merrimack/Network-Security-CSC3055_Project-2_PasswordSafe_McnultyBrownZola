@@ -90,33 +90,31 @@ public class LookupPrivateKeyPanel extends JPanel {
             String encryptedPrivKey = entry.getString("privkey");
             String iv = entry.getString("iv");
     
-            // Retrieve the correct vault key
+            // 🔍 Debug: Print the stored encrypted private key
+            System.out.println("🔒 Debug: Retrieved Encrypted Private Key (Base64 from Vault): " + encryptedPrivKey);
+    
+            // ✅ Retrieve the correct vault key
             SecretKey rootKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.getSalt()));
             SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
     
-            System.out.println("🔐 Decrypting with key: " + Base64.getEncoder().encodeToString(vaultKey.getEncoded())); // Debug log
+            // 🔍 Debug: Print the vault key used for decryption
+            System.out.println("🔑 Debug: Vault Key Used for Decryption: " + Base64.getEncoder().encodeToString(vaultKey.getEncoded()));
     
+            // ✅ Decrypt the private key
             byte[] decryptedBytes = VaultEncryption.decryptAESGCM(
                 Base64.getDecoder().decode(encryptedPrivKey),
                 vaultKey,
                 Base64.getDecoder().decode(iv)
             );
     
-            System.out.println("✅ Decryption successful!"); // Debug log
-            
-            // Convert from Base64 if necessary
+            // 🔍 Debug: Print decrypted value
             String decryptedKey = new String(decryptedBytes);
-            
-            try {
-                byte[] decodedKey = Base64.getDecoder().decode(decryptedKey);
-                return Base64.getEncoder().encodeToString(decodedKey); // Ensure output is correctly formatted
-            } catch (IllegalArgumentException e) {
-                // If decoding fails, the key was already plain text
-                return decryptedKey;
-            }
+            System.out.println("🔓 Debug: Decrypted Private Key (Raw String): " + decryptedKey);
+    
+            return decryptedKey;
     
         } catch (Exception e) {
-            e.printStackTrace(); // Log exception details
+            e.printStackTrace();
             return "[Error decrypting private key]";
         }
     }
