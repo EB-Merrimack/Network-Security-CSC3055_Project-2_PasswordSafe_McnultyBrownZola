@@ -170,6 +170,14 @@ public static byte[] decryptAESGCMopener(byte[] encryptedData, SecretKey rootKey
 
 
 
+/**
+ * Reconstructs a SecretKey from the given byte array representing the vault key.
+ *
+ * @param vaultKeyBytes the byte array containing the vault key
+ * @return the reconstructed SecretKey
+ * @throws IllegalArgumentException if the vaultKeyBytes is null or does not have a valid AES key length (16, 24, or 32 bytes)
+ */
+
 public static SecretKey reconstructKey(byte[] vaultKeyBytes) {
     if (vaultKeyBytes == null || (vaultKeyBytes.length != 16 && vaultKeyBytes.length != 24 && vaultKeyBytes.length != 32)) {
         throw new IllegalArgumentException("Invalid key length for AES.");
@@ -177,6 +185,15 @@ public static SecretKey reconstructKey(byte[] vaultKeyBytes) {
     return new SecretKeySpec(vaultKeyBytes, "AES");
 }
 
+    /**
+     * Extracts the 12-byte IV from the given encrypted vault data. The IV is
+     * assumed to be the first 12 bytes of the encrypted data.
+     *
+     * @param encryptedVaultData the encrypted data to extract the IV from
+     * @return the extracted IV
+     * @throws IllegalArgumentException if the input data is too short to contain
+     *                                  an IV
+     */
 public static byte[] extractIV(byte[] encryptedVaultData) {
     // Define the length of the IV for AES-GCM (12 bytes is common)
     final int IV_LENGTH = 12;

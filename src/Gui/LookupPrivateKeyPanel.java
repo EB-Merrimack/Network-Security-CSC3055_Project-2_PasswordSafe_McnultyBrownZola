@@ -49,6 +49,12 @@ public class LookupPrivateKeyPanel extends JPanel {
 
     }
 
+    /**
+     * Search the vault for the private key of the service with the given name.
+     * Prompts the user for the root password if it is not already stored.
+     * Shows a message dialog with the private key if it is found, or a warning
+     * if not found.
+     */
     private void searchVaultForPrivateKey() {
         String serviceName = serviceNameField.getText().trim();
 
@@ -81,6 +87,14 @@ public class LookupPrivateKeyPanel extends JPanel {
         }
     }
 
+    /**
+     * Retrieves the private key for the given service name from the vault.
+     * Given the root password, it will decrypt the private key.
+     * If the private key is not found, null is returned.
+     * @param serviceName The service name to look up.
+     * @param rootPassword The root password to decrypt the private key with.
+     * @return The decrypted private key, or null if not found.
+     */
     private String getPrivateKey(String serviceName, String rootPassword) {
         JSONArray privateKeys = vault.getPrivateKeys();
 
@@ -96,6 +110,18 @@ public class LookupPrivateKeyPanel extends JPanel {
 
         return null;
     }
+
+    /**
+     * Decrypts the private key stored in the provided JSON entry using the specified root password.
+     * 
+     * This method extracts the encrypted private key and the initialization vector (IV)
+     * from the JSON entry, derives the vault key using the root password, and then
+     * decrypts the private key using AES-GCM encryption.
+     * 
+     * @param entry The JSONObject containing the encrypted private key and associated IV.
+     * @param rootPassword The root password used to derive the vault key for decryption.
+     * @return The decrypted private key as a string, or an error message if decryption fails.
+     */
 
     private String decryptPrivateKey(JSONObject entry, String rootPassword) {
         try {

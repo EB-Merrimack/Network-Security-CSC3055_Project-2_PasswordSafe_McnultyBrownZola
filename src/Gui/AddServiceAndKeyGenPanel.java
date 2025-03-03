@@ -56,6 +56,12 @@ public class AddServiceAndKeyGenPanel extends JPanel {
         backButton.addActionListener(e -> guiBuilder.showPanel("Main"));
     }
 
+    /**
+     * Generates a 512-bit ElGamal key pair and stores it in the vault.
+     * Shows the generated public key in a message dialog.
+     * Encrypts the private key with the user's root password and stores it in the vault.
+     * If there is an error, shows an error message dialog.
+     */
     private void generateAndStoreElGamalKey() {
         String serviceName = serviceNameField.getText().trim();
 
@@ -109,6 +115,13 @@ public class AddServiceAndKeyGenPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Error: Failed to save ElGamal private key!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+/**
+ * Generates a 512-bit ElGamal key pair using the Bouncy Castle provider.
+ *
+ * @return a KeyPair containing the generated ElGamal public and private keys
+ * @throws Exception if an error occurs during key pair generation
+ */
 
     private KeyPair generateElGamalKeyPair() throws Exception {
         Security.addProvider(new BouncyCastleProvider());

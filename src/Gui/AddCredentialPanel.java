@@ -95,6 +95,14 @@ public class AddCredentialPanel extends JPanel {
         backButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("Main"));
     }
 
+/**
+ * Generates a random secure password and sets it to the password field.
+ * 
+ * This method utilizes the generateSecurePassword function to create a
+ * secure password with a specified length and updates the passwordField
+ * with this newly generated password.
+ */
+
     private void generateRandomPassword() {
         passwordField.setText(generateSecurePassword(16));
     }
@@ -108,6 +116,19 @@ public class AddCredentialPanel extends JPanel {
             showPasswordButton.setIcon(new ImageIcon(ICON_EYE_OPEN)); // Open eye icon
         }
     }
+
+/**
+ * Adds a service credential to the vault.
+ * 
+ * This method retrieves user input for service name, username, and password,
+ * verifies the user's root password for encryption, and securely stores the
+ * encrypted credentials in the vault. It then saves the updated vault and 
+ * clears the input fields.
+ * 
+ * @param parent The GUIBuilder instance used to interact with the vault.
+ * 
+ * @throws Exception If there is an error during encryption or vault operations.
+ */
 
     private void addToVault(GUIBuilder parent) {
         try {
@@ -169,12 +190,27 @@ public class AddCredentialPanel extends JPanel {
         }
     }
 
+    /**
+     * Clears the input fields for service name, username, and password.
+     */
+
     private void clearInputFields() {
         serviceNameField.setText("");
         usernameField.setText("");
         passwordField.setText("");
     }
 
+    /**
+     * Generates a secure password with a specified length, including at least one of each type of character.
+     * 
+     * This method first adds one of each type of character (uppercase, lowercase, digit, and special character)
+     * to a list, then adds random characters from the entire character set until the list is of the specified
+     * length. The list is then shuffled to randomize the order of the characters, and the list is converted to
+     * a string to return as the generated password.
+     * 
+     * @param length The length of the password to generate.
+     * @return A secure password of the specified length, including at least one of each type of character.
+     */
     private String generateSecurePassword(int length) {
         List<Character> passwordChars = new ArrayList<>();
         passwordChars.add(UPPERCASE.charAt(SECURE_RANDOM.nextInt(UPPERCASE.length())));

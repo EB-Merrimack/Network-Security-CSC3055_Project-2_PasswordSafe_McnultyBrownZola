@@ -68,6 +68,12 @@ public class LoginPanel extends JPanel {
         }
     }
 
+/**
+ * Sets up the panel for vault initialization mode. Updates UI components
+ * to prompt the user for a password and confirmation. Configures the
+ * action button to trigger vault initialization.
+ */
+
     private void setupInitializationMode() {
         actionButton.setText("Initialize Vault");
         confirmPasswordField.setVisible(true);
@@ -76,6 +82,10 @@ public class LoginPanel extends JPanel {
         actionButton.addActionListener(e -> initializeVault());
     }
 
+    /**
+     * Sets up the panel for vault login mode. Updates UI components to prompt the
+     * user for a password. Configures the action button to trigger vault login.
+     */
     private void setupLoginMode() {
         actionButton.setText("Unlock Vault");
         confirmPasswordField.setVisible(false);
@@ -110,6 +120,12 @@ public class LoginPanel extends JPanel {
         parent.showPanel("Main");
     }
 
+    /**
+     * Handles the login process for the vault. Retrieves the user's password input
+     * from the password field, stores it in the GUIBuilder, and attempts to unseal
+     * the vault using the entered password. If unsealing is successful, verifies
+     * the root password and grants access to the vault if correct.
+     */
 private void loginToVault() {
     String password = new String(passwordField.getPassword());
 
@@ -142,6 +158,11 @@ private void loginToVault() {
     }
 
 
+    /**
+     * Displays a message in the message label, typically used for
+     * displaying errors, warnings, or information to the user.
+     * @param message the message to display
+     */
     private void showMessage(String message) {
         messageLabel.setText(message);
         messageLabel.setVisible(true);

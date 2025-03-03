@@ -55,6 +55,13 @@ public class GUIBuilder extends JFrame {
     
      // Set custom close operation with a confirmation prompt if logged in
      addWindowListener(new java.awt.event.WindowAdapter() {
+        /**
+         * Handle the window closing event. If the user is logged in, a confirmation
+         * prompt is shown to confirm logout. If the user selects "Yes", the vault is
+         * sealed and the application is closed. If the user selects "No", the
+         * application stays open and the user stays on the current screen.
+         * If the user is not logged in, the application is closed immediately.
+         */
         public void windowClosing(java.awt.event.WindowEvent windowEvent) {
             if (isUserLoggedIn()) {
                 int result = JOptionPane.showConfirmDialog(GUIBuilder.this,

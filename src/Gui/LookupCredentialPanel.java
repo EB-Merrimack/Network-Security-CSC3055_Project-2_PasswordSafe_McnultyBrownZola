@@ -90,6 +90,13 @@ public class LookupCredentialPanel extends JPanel {
         }
     }
 
+    /**
+     * Retrieves the credential for the given service name from the vault.
+     *
+     * @param serviceName The service name to look up.
+     * @param rootPassword The root password to decrypt the credential with.
+     * @return The credential string, or null if no credential was found.
+     */
     private String getCredential(String serviceName, String rootPassword) {
         JSONArray passwords = vault.getPasswords();
 

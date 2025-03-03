@@ -164,6 +164,13 @@ public class VaultSealer implements JSONSerializable {
         JsonIO.writeFormattedObject(this, vaultFile);
     }
 
+    /**
+     * Deserialize the VaultSealer from JSON data. This method is part of the
+     * JSONSerializable interface.
+     *
+     * @param jsonType the JSON data to deserialize
+     * @throws InvalidObjectException if the JSON data is invalid
+     */
     @Override
     public void deserialize(JSONType jsonType) throws InvalidObjectException {
         JSONObject json = (JSONObject) jsonType;
@@ -177,6 +184,12 @@ public class VaultSealer implements JSONSerializable {
         }
     }
 
+    /**
+     * Serialize the VaultSealer to JSON data. This method is part of the
+     * JSONSerializable interface.
+     *
+     * @return the JSON data representing the VaultSealer
+     */
     @Override
     public JSONType toJSONType() {
         JSONObject json = new JSONObject();

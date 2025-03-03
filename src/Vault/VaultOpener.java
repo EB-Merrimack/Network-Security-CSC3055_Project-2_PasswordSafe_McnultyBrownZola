@@ -80,6 +80,13 @@ public class VaultOpener implements JSONSerializable {
         GCMParameterSpec spec = new GCMParameterSpec(128, Base64.getDecoder().decode(this.vaultKeyIV));
         return VaultEncryption.decryptAESGCMvaultdata(this.encryptedVaultKey, decryptedVaultKey, spec);
     }
+    /**
+     * Deserialize the VaultOpener from JSON data. This method is part of the
+     * JSONSerializable interface.
+     *
+     * @param jsonType the JSON data to deserialize
+     * @throws InvalidObjectException if the JSON data is invalid
+     */
     @Override
     public void deserialize(JSONType jsonType) throws InvalidObjectException {
         JSONObject json = (JSONObject) jsonType;
@@ -93,6 +100,12 @@ public class VaultOpener implements JSONSerializable {
         }
     }
 
+    /**
+     * Serialize the VaultOpener to JSON data. This method is part of the
+     * JSONSerializable interface.
+     *
+     * @return the JSON data representing the VaultOpener
+     */
     @Override
     public JSONType toJSONType() {
         JSONObject json = new JSONObject();

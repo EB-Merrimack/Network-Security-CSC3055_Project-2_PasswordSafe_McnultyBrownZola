@@ -184,15 +184,32 @@ public class Vault implements JSONSerializable {
             this.privKeys = json.getArray("privkeys");
         }
     
+        /**
+         * Sets the vault key IV and value from given parameters.
+         * Both parameters should be Base64 strings.
+         * @param iv the initialization vector for AES-GCM encryption
+         * @param key the encrypted vault key
+         */
         public void setVaultKey(String iv, String key) {
             this.vaultKeyIV = iv;
             this.vaultKeyValue = key;
         }
         
+        /**
+         * Returns the initialization vector (IV) used for encrypting the Vault key.
+         * The IV is a Base64-encoded string.
+         * @return the IV used for encrypting the Vault key
+         */
         public String getVaultKeyIV() {
             return this.vaultKeyIV;
         }
         
+/**
+ * Returns the encrypted Vault key as a Base64-encoded string.
+ * 
+ * @return the Base64-encoded encrypted Vault key
+ */
+
         public String getVaultKeyValue() {
             return this.vaultKeyValue;
         }
@@ -246,19 +263,47 @@ public class Vault implements JSONSerializable {
         }
     
     
+        /**
+         * Returns the salt used for hashing the root password as a Base64 string.
+         * The salt is trimmed of any whitespace before being returned.
+         * @return the salt used for hashing the root password
+         */
         public String getSalt() {
             return this.salt.trim();
         }
     
     
+        /**
+         * Returns the list of stored passwords as a JSONArray.
+         * The JSONArray stores objects of the form
+         * {service: <service name>, user: <user name>, pass: <password>}
+         * @return the list of stored passwords
+         */
         public JSONArray getPasswords() {
            return this.passwords;     }
     
     
+/**
+ * Returns the list of stored private keys as a JSONArray.
+ * The JSONArray stores objects of the form
+ * {service: <service name>, privkey: <private key>, iv: <initialization vector>}
+ * @return the list of stored private keys
+ */
+
         public JSONArray getPrivateKeys() {
             return this.privKeys;
         }
     
+        /**
+         * Returns the decrypted password for the given service and user.
+         * The password is decrypted using the given Vault key.
+         * If the password is not found, "Not found" is returned.
+         * If decryption fails, "Decryption error!" is returned.
+         * @param service the service name
+         * @param user the user name
+         * @param vaultKey the Vault key used for decryption
+         * @return the decrypted password
+         */
         public String getDecryptedPassword(String service, String user, SecretKey vaultKey) {
             for (Object obj : passwords) {
                 if (obj instanceof JSONObject) {  // Ensure it's a JSON object

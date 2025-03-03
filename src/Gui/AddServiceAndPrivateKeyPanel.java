@@ -49,6 +49,14 @@ public class AddServiceAndPrivateKeyPanel extends JPanel {
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
+    /**
+     * Saves the service name and a new randomly generated private key to the vault.
+     * The private key is encrypted with AES-GCM using the vault key, and stored in the vault.
+     * The user is prompted to enter a service name, and the stored user password is verified before saving.
+     * If the user password is incorrect, an error message is shown.
+     * If the service name is empty, an error message is shown.
+     * If the private key fails to be saved, an error message is shown.
+     */
     private void saveServiceAndPrivateKey() {
         String serviceName = serviceNameField.getText().trim();
     
