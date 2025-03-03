@@ -11,7 +11,7 @@ import javax.crypto.SecretKey;
 
 public class LookupPrivateKeyPanel extends JPanel {
     private JTextField serviceNameField;
-    private JButton searchButton;
+    private JButton searchButton, backButton;
     private Vault vault;
     private GUIBuilder guiBuilder; // Needed to access stored user password
 
@@ -21,17 +21,32 @@ public class LookupPrivateKeyPanel extends JPanel {
 
         setLayout(new BorderLayout());
 
+        JPanel inputPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
         serviceNameField = new JTextField(15);
         searchButton = new JButton("Lookup");
+        backButton = new JButton("← Back");
 
-        JPanel inputPanel = new JPanel(new GridLayout(1, 2, 10, 10));
-        inputPanel.add(new JLabel("Service Name:"));
-        inputPanel.add(serviceNameField);
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        inputPanel.add(new JLabel("Service Name:"), gbc);
+        gbc.gridx = 1;
+        inputPanel.add(serviceNameField, gbc);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.add(searchButton);
+        buttonPanel.add(backButton);
 
         add(inputPanel, BorderLayout.CENTER);
-        add(searchButton, BorderLayout.SOUTH);
+        add(buttonPanel, BorderLayout.SOUTH);
 
         searchButton.addActionListener(e -> searchVaultForPrivateKey());
+        backButton.addActionListener(e -> guiBuilder.showPanel("Main"));
+
     }
 
     private void searchVaultForPrivateKey() {
@@ -69,15 +84,12 @@ public class LookupPrivateKeyPanel extends JPanel {
     private String getPrivateKey(String serviceName, String rootPassword) {
         JSONArray privateKeys = vault.getPrivateKeys();
 
-        System.out.println("🔍 Searching for service: " + serviceName); // Debug log
 
         for (int i = 0; i < privateKeys.size(); i++) {
             JSONObject entry = privateKeys.getObject(i);
             String storedServiceName = entry.getString("service");
-            System.out.println("🔑 Found service in vault: " + storedServiceName); // Debug log
 
             if (storedServiceName.equalsIgnoreCase(serviceName)) {
-                System.out.println("✅ Match found, decrypting private key..."); // Debug log
                 return decryptPrivateKey(entry, rootPassword);
             }
         }
@@ -89,34 +101,24 @@ public class LookupPrivateKeyPanel extends JPanel {
         try {
             String encryptedPrivKey = entry.getString("privkey");
             String iv = entry.getString("iv");
-    
-            // Retrieve the correct vault key
+        
+            // Retrieve the vault key
             SecretKey rootKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.getSalt()));
             SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
-    
-            System.out.println("🔐 Decrypting with key: " + Base64.getEncoder().encodeToString(vaultKey.getEncoded())); // Debug log
-    
+        
+            // Decrypt the private key
             byte[] decryptedBytes = VaultEncryption.decryptAESGCM(
                 Base64.getDecoder().decode(encryptedPrivKey),
                 vaultKey,
                 Base64.getDecoder().decode(iv)
             );
     
-            System.out.println("✅ Decryption successful!"); // Debug log
-            
-            // Convert from Base64 if necessary
-            String decryptedKey = new String(decryptedBytes);
-            
-            try {
-                byte[] decodedKey = Base64.getDecoder().decode(decryptedKey);
-                return Base64.getEncoder().encodeToString(decodedKey); // Ensure output is correctly formatted
-            } catch (IllegalArgumentException e) {
-                // If decoding fails, the key was already plain text
-                return decryptedKey;
-            }
+            // Print decrypted value
+            String decryptedKey = new String(decryptedBytes);    
+            return decryptedKey;
     
         } catch (Exception e) {
-            e.printStackTrace(); // Log exception details
+            e.printStackTrace();
             return "[Error decrypting private key]";
         }
     }

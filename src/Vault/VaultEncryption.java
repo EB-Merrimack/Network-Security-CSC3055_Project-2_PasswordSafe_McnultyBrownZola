@@ -76,27 +76,24 @@ public class VaultEncryption {
     }
 
     // ✅ Gets the Vault Key by decrypting it with the root key
-    public static SecretKey getVaultKey(Vault vault, SecretKey rootKey) throws Exception {
-        if (vault.getVaultKeyValue().isEmpty() || vault.getVaultKeyIV().isEmpty()) {
-            throw new IllegalStateException("Vault key or IV is missing.");
-        }
-    
-        byte[] encryptedVaultKey = Base64.getDecoder().decode(vault.getVaultKeyValue());
-        byte[] iv = Base64.getDecoder().decode(vault.getVaultKeyIV());
-    
-        System.out.println("🔍 Debug: Encrypted Vault Key (Base64): " + vault.getVaultKeyValue());
-        System.out.println("🔍 Debug: Vault Key IV (Base64): " + vault.getVaultKeyIV());
-    
+    public static SecretKey getVaultKey(Vault vault, SecretKey rootKey) {
         try {
-            // Decrypt the vault key
-            byte[] decryptedVaultKey = decryptAESGCM(encryptedVaultKey, rootKey, iv);
-            
-            System.out.println("✅ Debug: Vault Key Decryption Successful! Length: " + decryptedVaultKey.length);
-            return new SecretKeySpec(decryptedVaultKey, "AES");
+            System.out.println("🛠 Debug: Retrieving Vault Key...");
     
+            byte[] encryptedVaultKey = Base64.getDecoder().decode(vault.getVaultKeyValue());
+            byte[] iv = Base64.getDecoder().decode(vault.getVaultKeyIV());
+    
+            System.out.println("🔍 Debug: Stored Encrypted Vault Key (Base64): " + vault.getVaultKeyValue());
+            System.out.println("🔍 Debug: Vault Key IV (Base64): " + vault.getVaultKeyIV());
+    
+            byte[] decryptedVaultKey = decryptAESGCM(encryptedVaultKey, rootKey, iv);
+            SecretKey vaultKey = new SecretKeySpec(decryptedVaultKey, "AES");
+    
+            // 🔍 Debug: Check if the decrypted vault key matches what should be used
+            System.out.println("🔑 Debug: Decrypted Vault Key (Base64): " + Base64.getEncoder().encodeToString(vaultKey.getEncoded()));
+    
+            return vaultKey;
         } catch (Exception e) {
-            System.err.println("❌ Error: Vault Key Decryption Failed - " + e.getMessage());
-            System.err.println("⚠️ Possible Causes: Incorrect Root Key, IV mismatch, or corrupted vault file.");
             throw new SecurityException("Vault Key Decryption Failed", e);
         }
     }

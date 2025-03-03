@@ -2,10 +2,8 @@ package Gui;
 
 import javax.crypto.SecretKey;
 import javax.swing.*;
-
 import Vault.Vault;
 import Vault.VaultEncryption;
-
 import java.awt.*;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -13,6 +11,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 
+// Add service name, username, and password to vault
 public class AddCredentialPanel extends JPanel {
     private JTextField serviceNameField, usernameField;
     private JPasswordField passwordField;
@@ -112,26 +111,25 @@ public class AddCredentialPanel extends JPanel {
 
     private void addToVault(GUIBuilder parent) {
         try {
-            // Get the vault instance
-            Vault vault = parent.getVault();
+            // Get the GUIBuilder instance
+            GUIBuilder guiBuilder = (GUIBuilder) SwingUtilities.getWindowAncestor(this);
 
-            // Retrieve user password from GUIBuilder
-            String userPassword = parent.getUserPassword(); 
+            // Retrieve the actual vault instance
+            Vault vault = guiBuilder.getVault();
 
-            // Debugging: Print the actual password
-            System.out.println("🔍 Debug: Retrieving User Password for Root Key Derivation: " + userPassword);
+            // Retrieve the actual user password from GUIBuilder (make sure it was stored at login!)
+            String userPassword = guiBuilder.getUserPassword();
 
-            // Verify the password
-            if (!vault.verifyRootPassword(userPassword)) {
+            // Verify the password to ensure it's correct
+            boolean isPasswordCorrect = vault.verifyRootPassword(userPassword);
+            if (!isPasswordCorrect) {
                 JOptionPane.showMessageDialog(this, "Invalid password! Unable to encrypt credentials.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // Derive the root key and get the vault key
+            // Derive root key and retrieve vault key
             SecretKey rootKey = VaultEncryption.deriveRootKey(userPassword, Base64.getDecoder().decode(vault.getSalt()));
             SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
-
-            System.out.println("✅ Debug: Successfully Retrieved Correct Vault Key!");
 
             // Retrieve user input for credentials
             String service = serviceNameField.getText().trim();
@@ -152,8 +150,6 @@ public class AddCredentialPanel extends JPanel {
             byte[] encryptedPass = VaultEncryption.encryptAESGCM(password.getBytes(), vaultKey, iv);
             String encodedPass = Base64.getEncoder().encodeToString(encryptedPass);
 
-            System.out.println("✅ Debug: Password Encrypted Successfully!");
-
             // Add the new password entry to the vault
             vault.addPassword(service, username, encodedPass, encodedIV);
 
@@ -167,7 +163,7 @@ public class AddCredentialPanel extends JPanel {
             clearInputFields();
 
         } catch (Exception e) {
-            System.err.println("❌ Error: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error adding credential. See console for details.", "Error", JOptionPane.ERROR_MESSAGE);
         }

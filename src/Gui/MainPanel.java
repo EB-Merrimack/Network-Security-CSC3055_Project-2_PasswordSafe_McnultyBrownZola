@@ -35,11 +35,13 @@ public class MainPanel extends JPanel {
         JButton generateKeyPairButton = new JButton("Generate Key Pair");
 
         // Add action listeners
+
         addCredentialButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("AddCredentialPanel", new AddCredentialPanel(parentFrame)));
         lookupCredentialButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("LookupCredentialPanel", new LookupCredentialPanel(vault, (GUIBuilder) parentFrame)));
         addPrivateKeyButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("AddServiceAndPrivateKeyPanel", new AddServiceAndPrivateKeyPanel(vault, (GUIBuilder) parentFrame)));
         lookupPrivateKeyButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("LookupPrivateKeyPanel", new LookupPrivateKeyPanel(vault, (GUIBuilder) parentFrame)));
         generateKeyPairButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("AddServiceAndKeyGenPanel", new AddServiceAndKeyGenPanel(vault, (GUIBuilder) parentFrame)));
+
 
 
 
