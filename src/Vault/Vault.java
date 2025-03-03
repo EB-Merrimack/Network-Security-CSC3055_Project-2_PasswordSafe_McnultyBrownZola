@@ -8,6 +8,7 @@ import merrimackutil.json.JsonIO;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InvalidObjectException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -244,18 +245,48 @@ public class Vault implements JSONSerializable {
         }
     
         // 🔹 Load Vault from File
-        public static Vault loadVault(File file) {
+        public static Vault loadVault(File file, String userPassword) {
             if (file.exists()) {
                 try {
-                    JSONObject jsonType = JsonIO.readObject(file);  // ✅ FIXED: Read using `readObject`
+                    JSONObject encryptedVaultJSON = JsonIO.readObject(file);
+        
+                    // 🔹 Extract encrypted vault data
+                    String encryptedVaultDataBase64 = encryptedVaultJSON.getString("vaultData");
+                    String encryptedVaultDataIVBase64 = encryptedVaultJSON.getString("vaultDataIV");
+        
+                    byte[] encryptedVaultData = Base64.getDecoder().decode(encryptedVaultDataBase64);
+                    byte[] encryptedVaultDataIV = Base64.getDecoder().decode(encryptedVaultDataIVBase64);
+        
+                    System.out.println("🔓 Debug: Vault Data Loaded, Decrypting...");
+        
+                    // 🔹 Retrieve Root Password
+                    String rootPassword = userPassword;  // Retrieve stored password
+        
+                    // 🔹 Derive the Root Key
+                    SecretKey rootKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(encryptedVaultJSON.getString("salt")));
+                    
+                    // 🔹 Decrypt the Vault Key using Root Key
+                    JSONObject vaultKeyJSON = encryptedVaultJSON.getObject("vaultkey");
+                    byte[] encryptedVaultKey = Base64.getDecoder().decode(vaultKeyJSON.getString("key"));
+                    byte[] vaultKeyIV = Base64.getDecoder().decode(vaultKeyJSON.getString("iv"));
+        
+                    byte[] decryptedVaultKey = VaultEncryption.decryptAESGCM(encryptedVaultKey, rootKey, vaultKeyIV);
+                    SecretKey vaultKey = new SecretKeySpec(decryptedVaultKey, "AES");
+        
+                    // 🔹 Decrypt the entire vault JSON
+                    byte[] decryptedVaultBytes = VaultEncryption.decryptAESGCM(encryptedVaultData, vaultKey, encryptedVaultDataIV);
+                    String decryptedVaultString = new String(decryptedVaultBytes, StandardCharsets.UTF_8);
+                    JSONObject decryptedVaultJSON = JsonIO.readObject(decryptedVaultString);
+        
+                    // 🔹 Deserialize the decrypted JSON into a Vault object
                     Vault vault = new Vault();
-                    vault.deserialize(jsonType);
-                    System.out.println("Vault loaded successfully.");
+                    vault.deserialize(decryptedVaultJSON);
+        
+                    System.out.println("✅ Debug: Vault successfully unsealed!");
+        
                     return vault;
-                } catch (FileNotFoundException e) {
-                    System.err.println("Vault file not found: " + e.getMessage());
                 } catch (Exception e) {
-                    System.err.println("Error loading vault: " + e.getMessage());
+                    System.err.println("❌ Error loading or decrypting vault: " + e.getMessage());
                 }
             }
             System.out.println("Creating a new vault...");
@@ -333,7 +364,58 @@ public class Vault implements JSONSerializable {
             return "Not found";
         }
 
+        public void sealVault(String userPassword) {
+    try {
+        System.out.println("🔒 Debug: Sealing vault before exiting...");
 
+        // 🔹 Convert vault data to JSON
+        JSONObject vaultJSON = (JSONObject) this.toJSONType();
+        String jsonString = vaultJSON.toString();
+        byte[] vaultData = jsonString.getBytes(StandardCharsets.UTF_8);
+
+        // 🔹 Derive the Root Key
+        SecretKey rootKey = VaultEncryption.deriveRootKey(userPassword, Base64.getDecoder().decode(this.salt));
+
+        // 🔹 Retrieve the Vault Key
+        SecretKey vaultKey = VaultEncryption.getVaultKey(this, rootKey);
+
+        System.out.println("🔐 Debug: Encrypting Vault Data...");
+
+        // 🔹 Generate IV for Vault Data Encryption
+        byte[] vaultDataIV = VaultEncryption.generateRandomIV();
+        String encodedVaultDataIV = Base64.getEncoder().encodeToString(vaultDataIV);
+
+        // 🔹 Encrypt Vault JSON using Vault Key
+        byte[] encryptedVaultData = VaultEncryption.encryptAESGCM(vaultData, vaultKey, vaultDataIV);
+        String encodedEncryptedVault = Base64.getEncoder().encodeToString(encryptedVaultData);
+
+        // 🔹 Generate IV for Vault Key Encryption
+        byte[] vaultKeyEncryptionIV = VaultEncryption.generateRandomIV();
+        String encodedVaultKeyIV = Base64.getEncoder().encodeToString(vaultKeyEncryptionIV);
+
+        // 🔹 Encrypt the Vault Key using Root Key
+        byte[] encryptedVaultKey = VaultEncryption.encryptAESGCM(vaultKey.getEncoded(), rootKey, vaultKeyEncryptionIV);
+        String encodedEncryptedVaultKey = Base64.getEncoder().encodeToString(encryptedVaultKey);
+
+        // 🔹 Update the Vault instance directly instead of creating a new JSONObject
+        this.vaultKeyIV = encodedVaultKeyIV;
+        this.vaultKeyValue = encodedEncryptedVaultKey;
+
+        // 🔹 Store the encrypted vault data in the vault instance
+        vaultJSON.put("vaultdata", encodedEncryptedVault);
+        vaultJSON.put("vaultdataIV", encodedVaultDataIV);
+
+        // 🔹 Save the Vault instance (which is `JSONSerializable`)
+        JsonIO.writeFormattedObject(this, new File("src/json/vault.json"));
+
+        System.out.println("🔐 Vault successfully sealed!");
+
+    } catch (Exception e) {
+        System.err.println("❌ Error: Failed to seal vault - " + e.getMessage());
+        e.printStackTrace();
+    }
+}
+        
 
      
         

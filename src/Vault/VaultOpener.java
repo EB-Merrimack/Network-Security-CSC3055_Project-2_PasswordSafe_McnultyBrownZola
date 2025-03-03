@@ -1,4 +1,4 @@
-package Vault;
+/*package Vault;
 
 import java.io.File;
 import java.io.InvalidObjectException;
@@ -87,7 +87,7 @@ public class VaultOpener implements JSONSerializable {
      * @param jsonType the JSON data to deserialize
      * @throws InvalidObjectException if the JSON data is invalid
      */
-    @Override
+    /*@Override
     public void deserialize(JSONType jsonType) throws InvalidObjectException {
         JSONObject json = (JSONObject) jsonType;
         try {
@@ -106,7 +106,7 @@ public class VaultOpener implements JSONSerializable {
      *
      * @return the JSON data representing the VaultOpener
      */
-    @Override
+    /*@Override
     public JSONType toJSONType() {
         JSONObject json = new JSONObject();
         json.put("salt", this.salt);
@@ -118,4 +118,4 @@ public class VaultOpener implements JSONSerializable {
         json.put("vaultkey", vaultKeyObject);
         return json;
     }
-}
+}*/

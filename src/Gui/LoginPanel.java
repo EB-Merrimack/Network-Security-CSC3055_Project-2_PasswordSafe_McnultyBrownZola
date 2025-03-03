@@ -2,7 +2,7 @@ package Gui;
 
 import javax.swing.*;
 import Vault.Vault;
-import Vault.VaultOpener;
+//import Vault.VaultOpener;
 
 import java.awt.*;
 
@@ -138,7 +138,7 @@ private void loginToVault() {
         try {
             // Try to unseal the vault using the entered password
             System.out.println("🔑 Attempting to unseal the vault...");
-            VaultOpener vaultOpener = new VaultOpener(password);
+            //VaultOpener vaultOpener = new VaultOpener(password);
             // If unsealing is successful, continue with login
             JOptionPane.showMessageDialog(this, "Vault successfully unsealed.");
         } catch (Exception e) {
