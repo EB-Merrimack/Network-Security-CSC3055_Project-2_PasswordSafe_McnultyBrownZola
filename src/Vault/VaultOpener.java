@@ -1,64 +1,65 @@
 package Vault;
 
+import java.io.File;
+import java.util.Base64;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
 import merrimackutil.json.JsonIO;
 import merrimackutil.json.types.JSONObject;
-import merrimackutil.json.types.JSONArray;
-import java.io.File;
-import java.io.FileNotFoundException;
 
 public class VaultOpener {
-    public VaultOpener(String password2) {
+
+    public VaultOpener(String userPassword) {
         try {
-            // Read the vault JSON file into a JSONObject
+            // Load encrypted vault data
             File vaultFile = new File("src/json/vault.json");
             JSONObject vaultData = JsonIO.readObject(vaultFile);
 
-            // Extract individual JSON elements (salt, rootPasswordHash, etc.)
+            // Extract required fields
             String salt = vaultData.getString("salt");
-            String rootPasswordHash = vaultData.getString("rootPasswordHash");
-            JSONObject vaultKeyObj = vaultData.getObject("vaultkey");
-            String vaultKeyIV = vaultKeyObj.getString("iv");
-            String encryptedVaultKey = vaultKeyObj.getString("encryptedVaultKey");
-            String encryptedVaultData = vaultData.getString("encryptedVaultData");
+            JSONObject vaultKeyObject = (JSONObject) vaultData.get("vaultkey");
+            String vaultKeyIV = vaultKeyObject.getString("iv");
+            String encryptedVaultKeyBase64 = vaultKeyObject.getString("encryptedVaultKey");
+            String encryptedVaultDataBase64 = vaultData.getString("encryptedVaultData");
 
-            // Decrypt vault data and the vault key (implement decryption logic here)
-            System.out.println("Vault Data Decrypted:");
-            System.out.println("Salt: " + salt);
-            System.out.println("Root Password Hash: " + rootPasswordHash);
-            System.out.println("Encrypted Vault Key: " + encryptedVaultKey);
-            System.out.println("Encrypted Vault Data: " + encryptedVaultData);
-
-            // Extract private keys and passwords (if any) and handle them
-            JSONArray privKeys = vaultData.getArray("privkeys");
-            JSONArray passwords = vaultData.getArray("passwords");
-
-            // Process private keys
-            for (int i = 0; i < privKeys.size(); i++) { // Use .size() instead of .length()
-                JSONObject privKey = (JSONObject) privKeys.get(i);  // Use get(i) to access each element
-                String service = privKey.getString("service");
-                String iv = privKey.getString("iv");
-                String encryptedPrivKey = privKey.getString("privkey");
-                System.out.println("Service: " + service);
-                System.out.println("IV: " + iv);
-                System.out.println("Encrypted Private Key: " + encryptedPrivKey);
+            if (salt == null || vaultKeyIV == null || encryptedVaultKeyBase64 == null || encryptedVaultDataBase64 == null) {
+                throw new IllegalArgumentException("Missing required fields in JSON.");
             }
 
-            // Process passwords
-            for (int i = 0; i < passwords.size(); i++) { // Use .size() instead of .length()
-                JSONObject password = (JSONObject) passwords.get(i);  // Use get(i) to access each element
-                String service = password.getString("service");
-                String user = password.getString("user");
-                String pass = password.getString("pass");
-                String iv = password.getString("iv");
-                System.out.println("Service: " + service);
-                System.out.println("User: " + user);
-                System.out.println("Encrypted Password: " + pass);
+            byte[] encryptedVaultKey = Base64.getDecoder().decode(encryptedVaultKeyBase64);
+            byte[] encryptedVaultData = Base64.getDecoder().decode(encryptedVaultDataBase64);
+
+            // Derive root key
+            byte[] saltBytes = Base64.getDecoder().decode(salt);
+            SecretKey rootKey = VaultEncryption.deriveRootKey(userPassword, saltBytes);
+            System.out.println("Debug: Derived Root Key (Base64): " + Base64.getEncoder().encodeToString(rootKey.getEncoded()));
+
+            // Decrypt vault key
+            byte[] iv = Base64.getDecoder().decode(vaultKeyIV);
+            GCMParameterSpec spec = new GCMParameterSpec(128, iv);
+            byte[] vaultKeyBytes = VaultEncryption.decryptAESGCMopener(encryptedVaultKey, rootKey, spec);
+
+            if (vaultKeyBytes == null) {
+                throw new IllegalArgumentException("Decryption failed: vaultKeyBytes is null.");
             }
 
-        } catch (FileNotFoundException e) {
-            System.err.println("Vault file not found: " + e.getMessage());
+            // Validate vault key length
+            if (vaultKeyBytes.length != 16 && vaultKeyBytes.length != 24 && vaultKeyBytes.length != 32) {
+                throw new IllegalArgumentException("Invalid AES key length: " + vaultKeyBytes.length);
+            }
+            SecretKey vaultKey = VaultEncryption.reconstructKey(vaultKeyBytes);
+
+            // Decrypt vault data
+            byte[] vaultIV = VaultEncryption.extractIV(encryptedVaultData);
+            GCMParameterSpec vaultSpec = new GCMParameterSpec(128, vaultIV);
+            byte[] decryptedVaultData = VaultEncryption.decryptAESGCMopener(encryptedVaultData, vaultKey, vaultSpec);
+
+            // Output decrypted vault data
+            String decryptedJson = new String(decryptedVaultData);
+            System.out.println("Decrypted Vault Data: " + decryptedJson);
+
         } catch (Exception e) {
-            System.err.println("Error processing vault data: " + e.getMessage());
+            System.err.println("❌ Error opening vault: " + e.getMessage());
             e.printStackTrace();
         }
     }
