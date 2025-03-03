@@ -14,7 +14,7 @@ public class LookupCredentialPanel extends JPanel {
     private JTextField serviceNameField;
     private JButton searchButton, backButton;
     private Vault vault;
-    private GUIBuilder guiBuilder; // Needed to access stored user password
+    private GUIBuilder guiBuilder;
 
     public LookupCredentialPanel(Vault vault, GUIBuilder guiBuilder) {
         this.vault = vault;
@@ -32,6 +32,7 @@ public class LookupCredentialPanel extends JPanel {
         backButton = new JButton("← Back");
 
 
+
         // Label Service Name
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -43,14 +44,17 @@ public class LookupCredentialPanel extends JPanel {
         gbc.anchor = GridBagConstraints.LINE_START;
         inputPanel.add(serviceNameField, gbc);
 
+
         // Add components to panel
         add(inputPanel, BorderLayout.CENTER);
         add(searchButton, BorderLayout.SOUTH);
         add(backButton, BorderLayout.SOUTH);
 
+
         // Button Action
         searchButton.addActionListener(e -> searchVault());
         backButton.addActionListener(e -> guiBuilder.showPanel("Main"));
+
 
     }
 
@@ -63,7 +67,6 @@ public class LookupCredentialPanel extends JPanel {
             return;
         }
 
-        // Retrieve the stored user password from GUIBuilder
         String rootPassword = guiBuilder.getUserPassword();
 
         if (rootPassword == null || rootPassword.isEmpty()) {
@@ -71,13 +74,11 @@ public class LookupCredentialPanel extends JPanel {
             return;
         }
 
-        // Verify the stored password is correct
         if (!vault.verifyRootPassword(rootPassword)) {
             JOptionPane.showMessageDialog(this, "Incorrect root password!", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // Retrieve and decrypt the credential
         String credential = getCredential(serviceName, rootPassword);
 
         if (credential != null) {
@@ -109,9 +110,9 @@ public class LookupCredentialPanel extends JPanel {
             String encryptedPass = entry.getString("pass");
             String iv = entry.getString("iv");
 
-            // 🔹 Retrieve the correct vault key
             SecretKey rootKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.getSalt()));
             SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);  // Use the stored vault key
+
 
             byte[] decryptedBytes = VaultEncryption.decryptAESGCM(
                 Base64.getDecoder().decode(encryptedPass),
@@ -119,10 +120,12 @@ public class LookupCredentialPanel extends JPanel {
                 Base64.getDecoder().decode(iv)
             );
 
+
             System.out.println("Decryption successful!"); // Debug log
+
             return new String(decryptedBytes);
         } catch (Exception e) {
-            e.printStackTrace(); // Log exception details
+            e.printStackTrace();
             return "[Error decrypting password]";
         }
     }
