@@ -38,13 +38,12 @@ public class AddServiceAndPrivateKeyPanel extends JPanel {
         // Save Button
         saveButton = new JButton("Save");
         backButton = new JButton("← Back");
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.add(saveButton);
-        buttonPanel.add(backButton);
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));  // Use FlowLayout for both buttons to appear side by side
+        buttonPanel.add(backButton);  // Add back button to panel
+        buttonPanel.add(saveButton);  // Add save button to panel
 
         saveButton.addActionListener(e -> saveServiceAndPrivateKey());
         backButton.addActionListener(e -> guiBuilder.showPanel("Main"));
-
 
         add(inputPanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
@@ -96,8 +95,6 @@ public class AddServiceAndPrivateKeyPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Service and private key added successfully!");
     
         } catch (Exception e) {
-            System.err.println("Error: Failed to encrypt and store private key - " + e.getMessage());
-            e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error: Failed to save private key!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }

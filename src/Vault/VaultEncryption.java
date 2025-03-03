@@ -129,6 +129,94 @@ public class VaultEncryption {
     return encryptedArray;
 }
 
-
-
+public static SecretKey getSecretKeyFromBytes(byte[] vaultKeyBytes) {
+    if (vaultKeyBytes == null || vaultKeyBytes.length != KEY_SIZE) {
+        throw new IllegalArgumentException("Invalid vault key bytes. Expected length: " + KEY_SIZE);
+    }
+    return new SecretKeySpec(vaultKeyBytes, "AES");
 }
+
+// Method to encrypt using AES-GCM
+public static byte[] encryptAESGCM(byte[] data, SecretKey key, GCMParameterSpec spec) throws Exception {
+    // Initialize the Cipher for AES/GCM/NoPadding
+    Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+    
+    // Initialize the cipher in ENCRYPT_MODE with the key and GCMParameterSpec (which includes the IV)
+    cipher.init(Cipher.ENCRYPT_MODE, key, spec);
+    
+    // Perform the encryption and return the result
+    return cipher.doFinal(data);
+}
+
+
+
+public static byte[] decryptAESGCMopener(byte[] encryptedData, SecretKey rootKey, GCMParameterSpec spec) {
+    try {
+        // Initialize the Cipher for AES/GCM/NoPadding
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        
+        // Initialize the cipher in DECRYPT_MODE with the provided rootKey and GCMParameterSpec
+        cipher.init(Cipher.DECRYPT_MODE, rootKey, spec);
+        
+        // Perform the decryption and return the result
+        return cipher.doFinal(encryptedData);
+    } catch (Exception e) {
+        // Log the error (or use a logging framework like SLF4J for production code)
+        System.err.println("❌ Decryption failed: " + e.getMessage());
+        e.printStackTrace();
+        return null; }
+}
+
+
+
+
+public static SecretKey reconstructKey(byte[] vaultKeyBytes) {
+    if (vaultKeyBytes == null || (vaultKeyBytes.length != 16 && vaultKeyBytes.length != 24 && vaultKeyBytes.length != 32)) {
+        throw new IllegalArgumentException("Invalid key length for AES.");
+    }
+    return new SecretKeySpec(vaultKeyBytes, "AES");
+}
+
+public static byte[] extractIV(byte[] encryptedVaultData) {
+    // Define the length of the IV for AES-GCM (12 bytes is common)
+    final int IV_LENGTH = 12;
+
+    if (encryptedVaultData == null || encryptedVaultData.length < IV_LENGTH) {
+        throw new IllegalArgumentException("Invalid encrypted data: Too short to contain an IV.");
+    }
+
+    // Extract the first 12 bytes (IV) from the encrypted data
+    byte[] iv = new byte[IV_LENGTH];
+    System.arraycopy(encryptedVaultData, 0, iv, 0, IV_LENGTH);
+
+    return iv;
+}
+
+
+
+
+  // Decrypt vault data using AES/GCM/NoPadding
+  public static byte[] decryptAESGCMvaultdata(byte[] encryptedVaultData, byte[] decryptedVaultKey, GCMParameterSpec spec) {
+    try {
+        // Create a SecretKey from the decryptedVaultKey byte array
+        SecretKey secretKey = new SecretKeySpec(decryptedVaultKey, "AES");
+
+        // Initialize the Cipher for AES/GCM/NoPadding
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+
+        // Initialize the cipher in DECRYPT_MODE with the SecretKey and GCMParameterSpec (which contains the IV)
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, spec);
+
+        // Perform the decryption and return the result (decrypted vault data)
+        return cipher.doFinal(encryptedVaultData);
+    } catch (Exception e) {
+        // Handle potential errors (e.g., invalid data, decryption failure)
+        System.err.println("❌ Decryption failed: " + e.getMessage());
+        throw new RuntimeException("Failed to decrypt vault data", e);
+    }
+}
+}
+
+
+
+

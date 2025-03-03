@@ -5,6 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 import Vault.Vault;
 import Vault.VaultEncryption;
+import Vault.VaultSealer;
 
 //import Vault.VaultSealer;
 import java.io.File;
@@ -14,8 +15,8 @@ public class MainPanel extends JPanel {
     private Vault vault;
     private GUIBuilder parent;
 
-    public MainPanel(GUIBuilder parent, Vault vault) {
-        this.parent = parent;
+    public MainPanel(JFrame parentFrame, Vault vault) {
+        this.parent = (GUIBuilder) parentFrame;
         this.vault = vault;
 
         // Set layout for MainPanel
@@ -34,11 +35,13 @@ public class MainPanel extends JPanel {
         JButton generateKeyPairButton = new JButton("Generate Key Pair");
 
         // Add action listeners
-        addCredentialButton.addActionListener(e -> parent.showPanel("AddCredentialPanel", new AddCredentialPanel(parent)));
-        lookupCredentialButton.addActionListener(e -> parent.showPanel("LookupCredentialPanel", new LookupCredentialPanel(vault, parent)));
-        addPrivateKeyButton.addActionListener(e -> parent.showPanel("AddServiceAndPrivateKeyPanel", new AddServiceAndPrivateKeyPanel(vault, parent)));
-        lookupPrivateKeyButton.addActionListener(e -> parent.showPanel("LookupPrivateKeyPanel", new LookupPrivateKeyPanel(vault, parent)));
-        generateKeyPairButton.addActionListener(e -> parent.showPanel("AddServiceAndKeyGenPanel", new AddServiceAndKeyGenPanel(vault, parent)));
+
+        addCredentialButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("AddCredentialPanel", new AddCredentialPanel(parentFrame)));
+        lookupCredentialButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("LookupCredentialPanel", new LookupCredentialPanel(vault, (GUIBuilder) parentFrame)));
+        addPrivateKeyButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("AddServiceAndPrivateKeyPanel", new AddServiceAndPrivateKeyPanel(vault, (GUIBuilder) parentFrame)));
+        lookupPrivateKeyButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("LookupPrivateKeyPanel", new LookupPrivateKeyPanel(vault, (GUIBuilder) parentFrame)));
+        generateKeyPairButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("AddServiceAndKeyGenPanel", new AddServiceAndKeyGenPanel(vault, (GUIBuilder) parentFrame)));
+
 
 
 
@@ -53,7 +56,7 @@ public class MainPanel extends JPanel {
         // Create logout button and add action to it
         JButton logoutButton = new JButton("Logout");
         logoutButton.setPreferredSize(new Dimension(100, 30));
-        //logoutButton.addActionListener(e -> logoutAndSealVault());
+        logoutButton.addActionListener(e -> logoutAndSealVault());
 
         // Create a JPanel for logout button and add it to the top of the main panel
         JPanel logoutPanel = new JPanel();
@@ -66,11 +69,12 @@ public class MainPanel extends JPanel {
     }
 
     // Method to logout and seal the vault
-    /*private void logoutAndSealVault() {
+    private void logoutAndSealVault() {
         
-        // Call the sealVault method from the Vault class
-        Vault vault2 = new Vault();
-        vault2.sealVault();
+        // Create a new VaultSealer object
+        VaultSealer vaultSealer = new VaultSealer(vault, parent.getUserPassword());
+        // Call the sealVault method to seal the vault
+        
 
-    }*/
+    }
 }

@@ -1,4 +1,5 @@
 {
+
    "salt" : "EikUY+C4pSJvKAo2",
    "privkeys" : [
    ],
@@ -8,6 +9,7 @@
    "vaultkey" : {
       "iv" : "iQU6qFah2cJV3HHe",
       "key" : "SYAwd6YI60QJW+WC5fVpEiPOuUFf+TGoUibPB4VjwMlBRsRA9LG3J4jbqmzQpRsT"
+
    }
 }
 

@@ -9,8 +9,7 @@ import Vault.VaultEncryption;
 import javax.crypto.SecretKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-
-//Lookup service name and key from vault
+// Lookup service name and key from vault
 public class AddServiceAndKeyGenPanel extends JPanel {
     private JTextField serviceNameField;
     private JButton generateButton, backButton;
@@ -23,6 +22,7 @@ public class AddServiceAndKeyGenPanel extends JPanel {
 
         setLayout(new BorderLayout());
 
+        // Input Panel
         JPanel inputPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
@@ -32,7 +32,7 @@ public class AddServiceAndKeyGenPanel extends JPanel {
         generateButton = new JButton("Generate & Store ElGamal Key");
         backButton = new JButton("← Back");
 
-
+        // Service Name label and field
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.LINE_END;
@@ -42,14 +42,18 @@ public class AddServiceAndKeyGenPanel extends JPanel {
         gbc.anchor = GridBagConstraints.LINE_START;
         inputPanel.add(serviceNameField, gbc);
 
-        add(inputPanel, BorderLayout.CENTER);
-        add(generateButton, BorderLayout.SOUTH);
-        add(backButton, BorderLayout.SOUTH);
+        // Button Panel to hold the Generate and Back buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.add(backButton);
+        buttonPanel.add(generateButton);
 
-        // Add Button Action Listener
+        // Add components to the main panel
+        add(inputPanel, BorderLayout.CENTER);
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        // Add Button Action Listeners
         generateButton.addActionListener(e -> generateAndStoreElGamalKey());
         backButton.addActionListener(e -> guiBuilder.showPanel("Main"));
-
     }
 
     private void generateAndStoreElGamalKey() {
@@ -78,9 +82,8 @@ public class AddServiceAndKeyGenPanel extends JPanel {
             PublicKey publicKey = keyPair.getPublic();
             PrivateKey privateKey = keyPair.getPrivate();
 
-            // Convert Public Key to Base64 and Show It
+            // Convert Public Key to Base64 and show it
             String publicKeyBase64 = Base64.getEncoder().encodeToString(publicKey.getEncoded());
-            System.out.println("Public Key (Base64): " + publicKeyBase64);
             JOptionPane.showMessageDialog(this, "Public Key:\n" + publicKeyBase64, "Public Key Generated", JOptionPane.INFORMATION_MESSAGE);
 
             // Convert Private Key to Base64
@@ -103,8 +106,6 @@ public class AddServiceAndKeyGenPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Service and ElGamal private key added successfully!");
 
         } catch (Exception e) {
-            System.err.println("Error: Failed to encrypt and store ElGamal private key - " + e.getMessage());
-            e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error: Failed to save ElGamal private key!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
