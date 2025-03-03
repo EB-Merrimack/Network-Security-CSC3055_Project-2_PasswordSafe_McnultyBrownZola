@@ -58,20 +58,18 @@ public class AddServiceAndPrivateKeyPanel extends JPanel {
         }
     
         try {
-            // ✅ Generate a new random private key (32 bytes long, Base64 encoded)
+            // ✅ Generate a new random private key
             byte[] privateKeyBytes = new byte[32];
             new SecureRandom().nextBytes(privateKeyBytes);
             String privateKey = Base64.getEncoder().encodeToString(privateKeyBytes);
-    
-            // 🔍 Debug: Print the generated private key BEFORE encryption
             System.out.println("✅ Debug: Generated Private Key (Before Encryption): " + privateKey);
     
-            // ✅ Derive the correct vault key
+            // ✅ Retrieve Vault Key (Should match what was decrypted!)
             SecretKey rootKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.getSalt()));
             SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
     
             // 🔍 Debug: Print the vault key used for encryption
-            System.out.println("🔐 Debug: Vault Key Used for Encryption: " + Base64.getEncoder().encodeToString(vaultKey.getEncoded()));
+            System.out.println("🔐 Debug: Vault Key Used for Encryption (After Retrieval): " + Base64.getEncoder().encodeToString(vaultKey.getEncoded()));
     
             // ✅ Generate IV for encryption
             byte[] iv = VaultEncryption.generateRandomIV();
@@ -81,7 +79,6 @@ public class AddServiceAndPrivateKeyPanel extends JPanel {
             byte[] encryptedPrivKeyBytes = VaultEncryption.encryptAESGCM(privateKey.getBytes(), vaultKey, iv);
             String encryptedPrivKey = Base64.getEncoder().encodeToString(encryptedPrivKeyBytes);
     
-            // 🔍 Debug: Print the encrypted private key BEFORE storing it
             System.out.println("🔒 Debug: Encrypted Private Key (Base64 Stored in Vault): " + encryptedPrivKey);
     
             // ✅ Store the encrypted private key in the vault
