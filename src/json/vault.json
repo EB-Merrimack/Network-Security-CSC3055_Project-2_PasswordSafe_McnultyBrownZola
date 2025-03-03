@@ -3,6 +3,12 @@
    "privkeys" : [
    ],
    "passwords" : [
+      {
+         "pass" : "TlGheMAwKFMiAHXNmiJpqhvwLg==",
+         "service" : "tes",
+         "iv" : "u563gw0wEDLY6Tkk",
+         "user" : "tes"
+      }
    ],
    "rootPasswordHash" : "D631KkWAz+u5nmEWITmvPTpkA8HTa4PklityHRyMvQs=",
    "vaultkey" : {

@@ -95,14 +95,13 @@ public class AddCredentialPanel extends JPanel {
         backButton.addActionListener(e -> ((GUIBuilder) parentFrame).showPanel("Main"));
     }
 
-/**
- * Generates a random secure password and sets it to the password field.
- * 
- * This method utilizes the generateSecurePassword function to create a
- * secure password with a specified length and updates the passwordField
- * with this newly generated password.
- */
-
+    /**
+     * Generates a random secure password and sets it to the password field.
+     * 
+     * This method utilizes the generateSecurePassword function to create a
+     * secure password with a specified length and updates the passwordField
+     * with this newly generated password.
+     */
     private void generateRandomPassword() {
         passwordField.setText(generateSecurePassword(16));
     }
@@ -117,19 +116,18 @@ public class AddCredentialPanel extends JPanel {
         }
     }
 
-/**
- * Adds a service credential to the vault.
- * 
- * This method retrieves user input for service name, username, and password,
- * verifies the user's root password for encryption, and securely stores the
- * encrypted credentials in the vault. It then saves the updated vault and 
- * clears the input fields.
- * 
- * @param parent The GUIBuilder instance used to interact with the vault.
- * 
- * @throws Exception If there is an error during encryption or vault operations.
- */
-
+    /**
+     * Adds a service credential to the vault.
+     * 
+     * This method retrieves user input for service name, username, and password,
+     * verifies the user's root password for encryption, and securely stores the
+     * encrypted credentials in the vault. It then saves the updated vault and 
+     * clears the input fields.
+     * 
+     * @param parent The GUIBuilder instance used to interact with the vault.
+     * 
+     * @throws Exception If there is an error during encryption or vault operations.
+     */
     private void addToVault(GUIBuilder parent) {
         try {
             // Get the GUIBuilder instance
@@ -163,6 +161,21 @@ public class AddCredentialPanel extends JPanel {
                 return;
             }
 
+            // Check password strength
+            String passwordStrength = checkPasswordStrength(password);
+            if (!passwordStrength.equals("Strong")) {
+                // Warn the user about weak password but allow them to proceed
+                int option = JOptionPane.showConfirmDialog(this, 
+                    "Your password is weak: " + passwordStrength + "\nDo you still want to proceed?", 
+                    "Weak Password Warning", 
+                    JOptionPane.YES_NO_OPTION, 
+                    JOptionPane.WARNING_MESSAGE);
+
+                if (option != JOptionPane.YES_OPTION) {
+                    return; // Stop if user does not want to proceed
+                }
+            }
+
             // Generate IV for this password entry
             byte[] iv = VaultEncryption.generateRandomIV();
             String encodedIV = Base64.getEncoder().encodeToString(iv);
@@ -193,7 +206,6 @@ public class AddCredentialPanel extends JPanel {
     /**
      * Clears the input fields for service name, username, and password.
      */
-
     private void clearInputFields() {
         serviceNameField.setText("");
         usernameField.setText("");
@@ -232,5 +244,22 @@ public class AddCredentialPanel extends JPanel {
             password.append(ch);
         }
         return password.toString();
+    }
+    
+    // Method to check the strength of a password
+    private String checkPasswordStrength(String password) {
+        if (password.length() < 8) {
+            return "Too short! Password must be greater than 8 characters!";
+        }
+        if (!password.matches(".*[A-Z].*")) {
+            return "Must contain an uppercase letter!";
+        }
+        if (!password.matches(".*[0-9].*")) {
+            return "Must contain a number!";
+        }
+        if (!password.matches(".*[!@#$%^&*()].*")) {
+            return "Must contain a special character!";
+        }
+        return "Strong";
     }
 }
