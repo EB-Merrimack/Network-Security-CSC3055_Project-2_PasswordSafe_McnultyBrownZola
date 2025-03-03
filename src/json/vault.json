@@ -1,18 +1,13 @@
 {
-   "salt" : "ftIbWpuOOykx6Rq6",
+   "salt" : "EikUY+C4pSJvKAo2",
    "privkeys" : [
-      {
-         "privkey" : "kzOqUQUAqlw0EsVUeSRM2RyT9lBH5w0j8yBE4vp61bK3rqJRP9R1XXLfRHg6XJL8iANf9BWs4GUISgzY",
-         "service" : "git",
-         "iv" : "BS/UILBHsbz+dIOV"
-      }
    ],
    "passwords" : [
    ],
    "rootPasswordHash" : "D631KkWAz+u5nmEWITmvPTpkA8HTa4PklityHRyMvQs=",
    "vaultkey" : {
-      "iv" : "WxS5QdxrLfeNyhaE",
-      "key" : "uUPHG7Vkdvo+AgExtCYfY1yGITyW94vE5UGtDQ+ZbfWTzz0rsbMWGgGqNWy6+SbW"
+      "iv" : "iQU6qFah2cJV3HHe",
+      "key" : "SYAwd6YI60QJW+WC5fVpEiPOuUFf+TGoUibPB4VjwMlBRsRA9LG3J4jbqmzQpRsT"
    }
 }
 

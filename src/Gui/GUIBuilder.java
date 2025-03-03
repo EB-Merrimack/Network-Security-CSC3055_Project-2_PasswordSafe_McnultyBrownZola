@@ -88,6 +88,7 @@ public class GUIBuilder extends JFrame {
     
         }*/
     
+        // Method to save the vault
         public void saveVault() {
             try {
                 JsonIO.writeFormattedObject(vault, new File(VAULT_FILE));
@@ -97,6 +98,7 @@ public class GUIBuilder extends JFrame {
             }
         }
     
+        // Show the panel names
         public void showPanel(String panelName) {
             cardLayout.show(mainPanel, panelName); // Switches to an already added panel
         }
@@ -106,18 +108,18 @@ public class GUIBuilder extends JFrame {
             cardLayout.show(mainPanel, panelName);
         }
     
-    
+        // Show pop-up messages
         public void showPopupMessage(String message) {
             JOptionPane.showMessageDialog(this, message, "Message", JOptionPane.INFORMATION_MESSAGE);
         }
     
+        // Getters and setters
         public Vault getVault() {
             return this.vault;
         }
     
         public void setUserPassword(String password) {
             this.userPassword = password;
-            System.out.println("✅ Debug: User Password Stored in GUIBuilder: " + password);
         }
         
         public String getUserPassword() {

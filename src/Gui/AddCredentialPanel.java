@@ -13,6 +13,8 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 
+
+// Add service name, username, and password to vault
 public class AddCredentialPanel extends JPanel {
     private JTextField serviceNameField, usernameField;
     private JPasswordField passwordField;
@@ -121,9 +123,6 @@ public class AddCredentialPanel extends JPanel {
             // Retrieve the actual user password from GUIBuilder (make sure it was stored at login!)
             String userPassword = guiBuilder.getUserPassword(); 
     
-            // Debugging: Print the actual password
-            System.out.println("🔍 Debug: Retrieving User Password for Root Key Derivation: " + userPassword);
-    
             // Verify the password to ensure it's correct
             boolean isPasswordCorrect = vault.verifyRootPassword(userPassword);
             if (!isPasswordCorrect) {
@@ -131,11 +130,11 @@ public class AddCredentialPanel extends JPanel {
                 return;
             }
     
-            // Now derive the correct root key
+            // Derive root key
             SecretKey rootKey = VaultEncryption.deriveRootKey(userPassword, Base64.getDecoder().decode(vault.getSalt()));
             SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
     
-            System.out.println("✅ Debug: Successfully Retrieved Correct Vault Key!");
+            System.out.println("Debug: Successfully Retrieved Correct Vault Key!");
     
             // Retrieve user input for credentials
             String service = serviceNameField.getText();
@@ -151,7 +150,7 @@ public class AddCredentialPanel extends JPanel {
             byte[] encryptedPass = VaultEncryption.encryptAESGCM(password.getBytes(), vaultKey, iv);
             String encodedPass = Base64.getEncoder().encodeToString(encryptedPass);
     
-            System.out.println("✅ Debug: Password Encrypted Successfully!");
+            System.out.println(" Debug: Password Encrypted Successfully!");
     
             // Add the new password entry to the vault
             vault.addPassword(service, username, encodedPass, encodedIV);
@@ -162,7 +161,7 @@ public class AddCredentialPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Credential added successfully!");
     
         } catch (Exception e) {
-            System.err.println("❌ Error: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
             e.printStackTrace();
         }
     }

@@ -9,6 +9,7 @@ import merrimackutil.json.types.JSONObject;
 import java.util.Base64;
 import javax.crypto.SecretKey;
 
+// Lookup the credentials in the vault
 public class LookupCredentialPanel extends JPanel {
     private JTextField serviceNameField;
     private JButton searchButton, backButton;
@@ -21,25 +22,43 @@ public class LookupCredentialPanel extends JPanel {
 
         setLayout(new BorderLayout());
 
+        JPanel inputPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
         serviceNameField = new JTextField(15);
         searchButton = new JButton("Lookup");
         backButton = new JButton("← Back");
 
-        JPanel inputPanel = new JPanel(new GridLayout(1, 2, 10, 10));
-        inputPanel.add(new JLabel("Service Name:"));
-        inputPanel.add(serviceNameField);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout());
-        buttonPanel.add(searchButton);
-        buttonPanel.add(backButton);
 
+        // Label Service Name
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.LINE_END;
+        inputPanel.add(new JLabel("Service Name:"), gbc);
+
+        // Service Name Field
+        gbc.gridx = 1;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        inputPanel.add(serviceNameField, gbc);
+
+
+        // Add components to panel
         add(inputPanel, BorderLayout.CENTER);
-        add(buttonPanel, BorderLayout.SOUTH);
+        add(searchButton, BorderLayout.SOUTH);
+        add(backButton, BorderLayout.SOUTH);
 
+
+        // Button Action
         searchButton.addActionListener(e -> searchVault());
         backButton.addActionListener(e -> guiBuilder.showPanel("Main"));
+
+
     }
 
+    // Search the vault for the service name
     private void searchVault() {
         String serviceName = serviceNameField.getText().trim();
 
@@ -72,6 +91,7 @@ public class LookupCredentialPanel extends JPanel {
     private String getCredential(String serviceName, String rootPassword) {
         JSONArray passwords = vault.getPasswords();
 
+
         for (int i = 0; i < passwords.size(); i++) {
             JSONObject entry = passwords.getObject(i);
             String storedServiceName = entry.getString("service");
@@ -84,19 +104,24 @@ public class LookupCredentialPanel extends JPanel {
         return null;
     }
 
+    // Decrypt the password
     private String decryptPassword(JSONObject entry, String rootPassword) {
         try {
             String encryptedPass = entry.getString("pass");
             String iv = entry.getString("iv");
 
             SecretKey rootKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.getSalt()));
-            SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
+            SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);  // Use the stored vault key
+
 
             byte[] decryptedBytes = VaultEncryption.decryptAESGCM(
                 Base64.getDecoder().decode(encryptedPass),
                 vaultKey,
                 Base64.getDecoder().decode(iv)
             );
+
+
+            System.out.println("Decryption successful!"); // Debug log
 
             return new String(decryptedBytes);
         } catch (Exception e) {

@@ -9,9 +9,11 @@ import Vault.VaultEncryption;
 import javax.crypto.SecretKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+
+//Lookup service name and key from vault
 public class AddServiceAndKeyGenPanel extends JPanel {
     private JTextField serviceNameField;
-    private JButton generateButton;
+    private JButton generateButton, backButton;
     private Vault vault;
     private GUIBuilder guiBuilder;
 
@@ -21,19 +23,33 @@ public class AddServiceAndKeyGenPanel extends JPanel {
 
         setLayout(new BorderLayout());
 
-        JPanel inputPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        JPanel inputPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
         serviceNameField = new JTextField(15);
-
-        inputPanel.add(new JLabel("Service Name:"));
-        inputPanel.add(serviceNameField);
-
-        // Generate Button
         generateButton = new JButton("Generate & Store ElGamal Key");
-        generateButton.addActionListener(e -> generateAndStoreElGamalKey());
+        backButton = new JButton("← Back");
 
-        // Add components to panel
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.LINE_END;
+        inputPanel.add(new JLabel("Service Name:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.anchor = GridBagConstraints.LINE_START;
+        inputPanel.add(serviceNameField, gbc);
+
         add(inputPanel, BorderLayout.CENTER);
         add(generateButton, BorderLayout.SOUTH);
+        add(backButton, BorderLayout.SOUTH);
+
+        // Add Button Action Listener
+        generateButton.addActionListener(e -> generateAndStoreElGamalKey());
+        backButton.addActionListener(e -> guiBuilder.showPanel("Main"));
+
     }
 
     private void generateAndStoreElGamalKey() {
@@ -57,21 +73,20 @@ public class AddServiceAndKeyGenPanel extends JPanel {
         }
 
         try {
-            // ✅ Generate a 512-bit ElGamal key pair
+            // Generate a 512-bit ElGamal key pair
             KeyPair keyPair = generateElGamalKeyPair();
             PublicKey publicKey = keyPair.getPublic();
             PrivateKey privateKey = keyPair.getPrivate();
 
-            // ✅ Convert Public Key to Base64 and Show It
+            // Convert Public Key to Base64 and Show It
             String publicKeyBase64 = Base64.getEncoder().encodeToString(publicKey.getEncoded());
-            System.out.println("✅ Public Key (Base64): " + publicKeyBase64);
+            System.out.println("Public Key (Base64): " + publicKeyBase64);
             JOptionPane.showMessageDialog(this, "Public Key:\n" + publicKeyBase64, "Public Key Generated", JOptionPane.INFORMATION_MESSAGE);
 
-            // ✅ Convert Private Key to Base64
+            // Convert Private Key to Base64
             String privateKeyBase64 = Base64.getEncoder().encodeToString(privateKey.getEncoded());
-            System.out.println("✅ Private Key (Base64 - Encrypted before storing): " + privateKeyBase64);
 
-            // ✅ Encrypt the Private Key
+            // Encrypt the Private Key
             SecretKey rootKey = VaultEncryption.deriveRootKey(rootPassword, Base64.getDecoder().decode(vault.getSalt()));
             SecretKey vaultKey = VaultEncryption.getVaultKey(vault, rootKey);
 
@@ -81,16 +96,14 @@ public class AddServiceAndKeyGenPanel extends JPanel {
             byte[] encryptedPrivKeyBytes = VaultEncryption.encryptAESGCM(privateKeyBase64.getBytes(), vaultKey, iv);
             String encryptedPrivKey = Base64.getEncoder().encodeToString(encryptedPrivKeyBytes);
 
-            System.out.println("✅ Debug: Private Key Encrypted Successfully!");
-
-            // ✅ Store the encrypted private key in the vault
+            // Store the encrypted private key in the vault
             vault.addPrivateKey(serviceName, encryptedPrivKey, encodedIV);
             guiBuilder.saveVault();
 
             JOptionPane.showMessageDialog(this, "Service and ElGamal private key added successfully!");
 
         } catch (Exception e) {
-            System.err.println("❌ Error: Failed to encrypt and store ElGamal private key - " + e.getMessage());
+            System.err.println("Error: Failed to encrypt and store ElGamal private key - " + e.getMessage());
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error: Failed to save ElGamal private key!", "Error", JOptionPane.ERROR_MESSAGE);
         }
