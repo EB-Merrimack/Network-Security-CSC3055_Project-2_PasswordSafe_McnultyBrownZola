@@ -44,11 +44,13 @@ public class LookupCredentialPanel extends JPanel {
         gbc.anchor = GridBagConstraints.LINE_START;
         inputPanel.add(serviceNameField, gbc);
 
-
+        // Button Panel- south buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.add(searchButton);
+        buttonPanel.add(backButton);
         // Add components to panel
         add(inputPanel, BorderLayout.CENTER);
-        add(searchButton, BorderLayout.SOUTH);
-        add(backButton, BorderLayout.SOUTH);
+        add(buttonPanel, BorderLayout.SOUTH);
 
 
         // Button Action
